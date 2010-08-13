@@ -1,1 +1,11 @@
-this is the new pyfibot-punga repository
+A Python IRC bot made using the Twisted matrix IRC library. 
+
+This version includes:
+
+* public & private messages handling
+* twitter integration
+
+This version will include
+
+* user authentication
+
