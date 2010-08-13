@@ -10,7 +10,7 @@ Its base on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
 This version includes:
 
 * public & private messages handling
-* twitter integration
+* twitter integration (using python-twiter library)
 * a couple of new modules
 
 This version will include
