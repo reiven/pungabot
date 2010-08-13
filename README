@@ -1,9 +1,12 @@
-A Python IRC bot made using the Twisted matrix IRC library. 
+A Python IRC bot made using the Twisted matrix IRC library
+
+This is a fork of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
 
 This version includes:
 
 * public & private messages handling
 * twitter integration
+* a couple of new modules
 
 This version will include
 
