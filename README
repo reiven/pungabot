@@ -1,1 +1,36 @@
-this is the new pyfibot-punga repository
+Pyfibot-punga
+
+
+Description
+===========
+
+A pure python IRC bot ,using the Twisted matrix IRC library
+Its base on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
+
+This version includes:
+
+* public & private messages handling
+* twitter integration
+* a couple of new modules
+
+This version will include
+
+* user authentication
+
+Usage
+===========
+
+$ cd pyfibot-punga
+$ vi bot.config
+$ python pyfibot.py 
+
+The last step will notify if you're missing any libraries 
+
+License
+=======
+
+This package is distributed under the GPL. see also COPYING.
+
+
+----------------------------------------------------------------
+federico reiven <reiven@gmail.com>
