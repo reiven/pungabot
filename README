@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Pyfibot-punga
 
 
@@ -7,11 +6,6 @@ Description
 
 A pure python IRC bot ,using the Twisted matrix IRC library
 Its base on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
-=======
-A Python IRC bot made using the Twisted matrix IRC library
-
-This is a fork of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
->>>>>>> abfc1a8636eec8889dfe951dd4e223cd93f9bb7c
 
 This version includes:
 
@@ -23,7 +17,6 @@ This version will include
 
 * user authentication
 
-<<<<<<< HEAD
 Usage
 ===========
 
@@ -42,4 +35,3 @@ This package is distributed under the GPL. see also COPYING.
 ----------------------------------------------------------------
 federico reiven <reiven@gmail.com>
 =======
->>>>>>> abfc1a8636eec8889dfe951dd4e223cd93f9bb7c
