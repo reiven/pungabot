@@ -179,17 +179,15 @@ class CoreCommands(object):
 
 
 class PyFiBot(irc.IRCClient, CoreCommands):
-    """PyFiBot"""
+    """PyFiBot-punga"""
 
     nickname = "pyfibot"
     realname = "cookiebot"
 
-    # send 1 msg per second max
+    # send 1 msg per 1/2 sec
     lineRate = 0.5
 
     hasQuit = False
-
-    CMDCHAR = "!"
 
     # Rolling ping time average
     pingAve = 0.0
@@ -206,7 +204,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
 
     def __repr__(self):
-        return 'PyFiBot(%r, %r)' % (self.nickname, self.network.address)
+        return 'PyFiBot-punga(%r, %r)' % (self.nickname, self.network.address)
 
     ###### CORE 
 
@@ -291,8 +289,8 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
 	    log.debug("private msg")
 
-    	    if msg.startswith(self.CMDCHAR):
-        	cmnd = msg[len(self.CMDCHAR):]
+    	    if msg.startswith(self.factory.config['commandchar']):
+        	cmnd = msg[len(self.factory.config['commandchar']):]
         	self._privcommand(user, self.factory.getNick(user), cmnd)
 
         else:
@@ -303,8 +301,8 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 		# if a message was sent talking to the bot, use bola8 command
                 msg = "!bola8 " + msg[len(self.nickname) + 1:].lstrip()
 
-    	    if msg.startswith(self.CMDCHAR):
-        	cmnd = msg[len(self.CMDCHAR):]
+    	    if msg.startswith(self.factory.config['commandchar']):
+        	cmnd = msg[len(self.factory.config['commandchar']):]
         	self._command(user, channel, cmnd)
 
     	    # run URL handlers

@@ -411,6 +411,7 @@ def create_example_conf():
         channels:
           - mychannel
           - (mysecret, password)
+    commandchar: "!"
     """
 
     examplefile = 'bot.config.example'
