@@ -52,7 +52,7 @@ class CoreCommands(object):
                 self.say(channel, "Rehash OK")
                 log.info("Rehash OK")
 
-    def command_join(self, user, channel, args):
+    def privcommand_join(self, user, channel, args):
         """Usage: join <channel>[@network] [password] - Join the specified channel"""
 
         if not self.factory.isAdmin(user):
