@@ -41,8 +41,7 @@ except ImportError:
     sys.exit(1)
 
 from util import *
-from util.BeautifulSoup import BeautifulSoup
-from util.BeautifulSoup import UnicodeDammit
+from BeautifulSoup import BeautifulSoup, UnicodeDammit
 
 # default timeout for socket connections
 import socket
@@ -334,6 +333,7 @@ class PyFiBotFactory(ThrottledClientFactory):
 
         g['getUrl'] = self.getUrl
         g['getNick'] = self.getNick
+	g['getHostmask'] = self.getHostmask
         g['isAdmin'] = self.isAdmin
 	g['twupdate'] = self.twupdate
 	g['twget'] = self.twget
@@ -361,6 +361,16 @@ class PyFiBotFactory(ThrottledClientFactory):
 
         @return: nick"""
         return user.split('!', 1)[0]
+
+    def getHostmask(self, user):
+        """Parses hostmask from nick!user@host
+
+        @type user: string
+        @param user: nick!user@host
+
+        @return: nick"""
+        return user.split('!', 1)[1]
+
 
     def isAdmin(self, user):
         """Check if an user has admin privileges.

@@ -12,7 +12,7 @@ import re
 
 from types import TupleType
 
-from util.BeautifulSoup import BeautifulStoneSoup
+from BeautifulSoup import BeautifulStoneSoup
 
 log = logging.getLogger("urltitle")
 
