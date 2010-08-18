@@ -16,7 +16,8 @@ def command_futbol(bot,user, channel, args):
 	    equipos = tabla[0].findAll('td',{'class' : 'ancho-160'})
 	    puntos = tabla[0].findAll('p',{'class' : 'pts'})
 	    for i in range (0,5):
-		bot.say(channel,'%s - %s puntos' % (equipos[i].renderContents(),puntos[i].renderContents()))
+		e = equipos[i].findAll('a')
+		bot.say(channel,'%s - %s puntos' % (e[0].renderContents(),puntos[i].renderContents()))
 
 	    return
 
@@ -29,7 +30,8 @@ def command_futbol(bot,user, channel, args):
 	    datos = tabla[0].findAll('td')
 
 	    for i in range (0,45,9):
-		bot.say(channel,'%s - %s - %s goles' % (datos[i+1].renderContents(),datos[i+3].renderContents(), datos[i+8].find('p').renderContents()))
+		e = datos[i+3].findAll('a')
+		bot.say(channel,'%s - %s - %s goles' % (datos[i+1].renderContents(),e[0].renderContents(), datos[i+8].find('p').renderContents()))
 
 	    return
 
@@ -42,7 +44,8 @@ def command_futbol(bot,user, channel, args):
 	    datos = tabla[0].findAll('td')
 
 	    for i in range (152,112,-8):
-		bot.say(channel,'%s - %s' % (datos[i+1].renderContents(),datos[i+7].renderContents()))
+		e = datos[i+1].findAll('a')
+		bot.say(channel,'%s - %s' % (e[0].renderContents(),datos[i+7].renderContents()))
 
 	    return
 
