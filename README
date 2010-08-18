@@ -5,17 +5,25 @@ Description
 ===========
 
 A pure python IRC bot ,using the Twisted matrix IRC library
-Its base on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
+Its based on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
 
 This version includes:
 
 * public & private messages handling
-* twitter integration (using python-twiter library)
+* twitter integration
 * a couple of new modules
 
-This version will include
+This version will include (in dev)
 
 * user authentication
+
+Python libraries needed
+===========
+
+twisted matrix (http://twistedmatrix.com)
+pyton-twitter (http://code.google.com/p/python-twitter)
+pyyaml (http://pyyaml.org/wiki/PyYAML)
+
 
 Usage
 ===========
@@ -34,4 +42,3 @@ This package is distributed under the GPL. see also COPYING.
 
 ----------------------------------------------------------------
 federico reiven <reiven@gmail.com>
-=======
