@@ -40,8 +40,7 @@ def command_noticia(bot,user,channel,args):
     if args:
 	# replace the stemmer with your lang
 	stemmer = Stemmer.Stemmer('spanish')
-	args = stemmer.stemWord(args)
-	feed_name = noticias(args)
+	feed_name = noticias(stemmer.stemWord(args))
 	if len(feed_name) == 0:
 	    bot.say(channel, 'sorry, %s not found' % args)
 	    return
