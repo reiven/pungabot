@@ -23,7 +23,7 @@ Python libraries needed
 twisted matrix (http://twistedmatrix.com)
 pyton-twitter (http://code.google.com/p/python-twitter)
 pyyaml (http://pyyaml.org/wiki/PyYAML)
-
+pystemmer (http://pypi.python.org/pypi/PyStemmer/1.1.0)
 
 Usage
 ===========

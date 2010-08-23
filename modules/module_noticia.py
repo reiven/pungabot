@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import feedparser
 import unicodedata
 import re
 import random
 import string
+import Stemmer
 
 FEEDS = {
    'Clarin': 'http://www.clarin.com/diario/hoy/um/sumariorss.xml',
@@ -13,6 +16,7 @@ FEEDS = {
    'Perfil' : 'http://www.perfil.com/rss/ultimomomento.xml',
    'El Argentino' : 'http://www.elargentino.com/Highlights.aspx?Content-Type=text/xml&ChannelDesc=Home',
    'BBC Mundo' : 'http://www.bbc.co.uk/mundo/index.xml',
+   'Agencia Noticias Bariloche' : 'http://www.anbariloche.com.ar/anbrss.xml',
 }
 
 def sanitize(buf):
@@ -31,9 +35,12 @@ def noticias(busqueda):
     return ret
 
 def command_noticia(bot,user,channel,args):
-    """search for keyword in argentina's news (clarin/infobae/lanacion/critica)"""
+    """search for keyword in argentina's news (clarin/infobae/lanacion/p12/etc)"""
 
     if args:
+	# replace the stemmer with your lang
+	stemmer = Stemmer.Stemmer('spanish')
+	args = stemmer.stemWord(args)
 	feed_name = noticias(args)
 	if len(feed_name) == 0:
 	    bot.say(channel, 'sorry, %s not found' % args)
