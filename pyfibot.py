@@ -12,18 +12,11 @@ import sys
 import os.path
 import time
 import urllib
-import fnmatch
 import HTMLParser
 import logging
 import logging.handlers
 import twitter
 import commands
-
-try:
-    import psyco
-    psyco.full()
-except ImportError:
-    print "Psyco not found, running unoptimized"
 
 try:
     import yaml
@@ -220,7 +213,6 @@ class PyFiBotFactory(ThrottledClientFactory):
         self.data = {}
         self.data['networks'] = {}
         self.ns = {}
-	self.users = {}
 
         # cache url contents for 5 minutes, check for old entries every minute
         self._urlcache = timeoutdict.TimeoutDict(timeout=300, pollinterval=60)
@@ -334,7 +326,6 @@ class PyFiBotFactory(ThrottledClientFactory):
         g['getUrl'] = self.getUrl
         g['getNick'] = self.getNick
 	g['getHostmask'] = self.getHostmask
-        g['isAdmin'] = self.isAdmin
 	g['twupdate'] = self.twupdate
 	g['twget'] = self.twget
         return g
@@ -371,18 +362,6 @@ class PyFiBotFactory(ThrottledClientFactory):
         @return: nick"""
         return user.split('!', 1)[1]
 
-
-    def isAdmin(self, user):
-        """Check if an user has admin privileges.
-
-        @return: True or False"""
-
-        for pattern in self.config['admins']:
-            if fnmatch.fnmatch(user, pattern):
-                return True
-
-        return False
-
     def twupdate(self, post):
 	"""update our twitter status"""
 
@@ -400,8 +379,6 @@ def create_example_conf():
 
     conf = """
     nick: botnick
-    admins:
-      - '*!*@myhost.com'
     twitter:
     - twuser
     - twpassword
@@ -458,7 +435,7 @@ if __name__ == '__main__':
     factory = PyFiBotFactory(config)
 
     # write pidfile, for eggchk
-    pidfile = "pid." + config['nick']
+    pidfile = config['nick'] + ".pid"
     file = open(pidfile,'w')
     file.write('%s\n' % os.getpid())
     file.close()

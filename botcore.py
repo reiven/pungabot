@@ -18,7 +18,10 @@ import string
 import urllib
 import logging
 import re
+import fnmatch
 from util import pyfiurl
+from pysqlite2 import dbapi2 as sqlite3
+
 
 # line splitting
 import textwrap
@@ -37,7 +40,8 @@ class CoreCommands(object):
     def privcommand_rehash(self, user, channel, args):
         """Reload modules. Usage: rehash [debug]"""
 
-        if self.factory.isAdmin(user):
+	lvl = self.checkValidHostmask(user)
+	if lvl and lvl > 4:
             try:
                 # rebuild core & update
                 log.info("rebuilding %r" % self)
@@ -51,11 +55,14 @@ class CoreCommands(object):
             else:
                 self.say(channel, "Rehash OK")
                 log.info("Rehash OK")
+	else:
+	    log.debug("%s tried priveleged !rehash command" % self.factory.getNick(user))
 
     def privcommand_join(self, user, channel, args):
         """Usage: join <channel>[@network] [password] - Join the specified channel"""
 
-        if not self.factory.isAdmin(user):
+	lvl = self.checkValidHostmask(user)
+	if not lvl or lvl < 4:
             return
 
         password = None
@@ -91,12 +98,13 @@ class CoreCommands(object):
     # alias of part
     def privcommand_leave(self, user, channel, args):
         """Usage: leave <channel>[@network] - Leave the specified channel"""
-        self.command_part(user, channel, args)
+        self.privcommand_part(user, channel, args)
 
     def privcommand_part(self, user, channel, args):
         """Usage: part <channel>[@network] - Leave the specified channel"""
 
-        if not self.factory.isAdmin(user):
+	lvl = self.checkValidHostmask(user)
+	if not lvl or lvl < 4:
             return
 
         # part what and where?
@@ -121,7 +129,8 @@ class CoreCommands(object):
     def privcommand_quit(self, user, channel, args):
         """Usage: logoff - Leave this network"""
 
-        if not self.factory.isAdmin(user):
+	lvl = self.checkValidHostmask(user)
+	if not lvl or lvl < 4:
             return
 
         self.quit("Working as programmed")
@@ -196,6 +205,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
         self.network = network
         self.nickname = self.network.nickname
         self.channels_users = {}
+	self.authenticated = {}
 
         # text wrapper to clip overly long answers
         self.tw = textwrap.TextWrapper(width=400, break_long_words=True)
@@ -228,6 +238,16 @@ class PyFiBot(irc.IRCClient, CoreCommands):
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
 
+	# first we should get all the hostmask for the admins/bots
+        conn = sqlite3.connect(self.nickname + ".db")
+        cursor = conn.cursor()
+	cursor.execute ("SELECT hostmask,level FROM users ORDER BY level")
+	for mask in cursor:
+	    if mask[0] != None:
+		log.debug("debug: %s - %s" % (mask[0],mask[1]))
+		self.authenticated[mask[0]] = mask[1]
+	conn.close()
+
         for chan in self.network.channels:
             # defined as a tuple, channel has a key
             if type(chan) == list:
@@ -236,6 +256,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
                 self.join(chan)
 
         log.info("joined %d channel(s): %s" % (len(self.network.channels), ", ".join(self.network.channels)))
+
 
     def pong(self, user, secs):
         self.pingAve = ((self.pingAve * 5) + secs) / 6.0
@@ -268,6 +289,17 @@ class PyFiBot(irc.IRCClient, CoreCommands):
         self.sendLine("NAMES " + channel)
 	return self.channels_users[channel]
 
+    def checkValidHostmask(self,user):
+	""" based in the user hostmask, check if he/it do auth. return user level"""
+
+	for pattern, level in self.authenticated.items():
+	    if fnmatch.fnmatch(self.factory.getHostmask(user),pattern):
+		log.debug("pattern matched = %s" % pattern)
+		return level
+
+	return False
+
+
     ###### COMMUNICATION
 
     def privmsg(self, user, channel, msg):
@@ -282,7 +314,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
         lmsg = msg.lower()
         lnick = self.nickname.lower()
         nickl = len(lnick)
-#        log.debug ("<%s|%s> %s" % (self.factory.getNick(user), channel, msg))
 
 	# bot private commands
         if channel == lnick:
@@ -347,7 +378,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "command_%s" % cmnd, None)
         if method is not None:
-            log.info("internal command %s called by %s (%s) on %s" % (cmnd, user, self.factory.isAdmin(user), channel))
+            log.info("internal command %s called by %s on %s" % (cmnd, user, channel))
             method(user, channel, args)
             return
 
@@ -358,7 +389,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
             commands = [(c,ref) for c,ref in mylocals.items() if c == "command_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s (%s) on %s" % (cname, user, self.factory.isAdmin(user), channel))
+                log.info("module %s called by %s on %s" % (cname, user, channel))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "command %s completed" % cname)
@@ -380,7 +411,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "privcommand_%s" % cmnd, None)
         if method is not None:
-            log.info("internal privcommand %s called by %s (%s) on %s" % (cmnd, user, self.factory.isAdmin(user), channel))
+            log.info("internal privcommand %s called by %s on %s" % (cmnd, user, channel))
             method(user, channel, args)
             return
 
@@ -390,7 +421,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
             commands = [(c,ref) for c,ref in mylocals.items() if c == "privcommand_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s (%s) on %s" % (cname, user, self.factory.isAdmin(user), channel))
+                log.info("module %s called by %s on %s" % (cname, user, channel))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "privcommand %s completed" % cname)
@@ -403,7 +434,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
         nick = self.factory.getNick(prefix)
         channel = params[-1]
-        log.info("internal join called")
 
         if nick == self.nickname:
             self.joined(channel)
