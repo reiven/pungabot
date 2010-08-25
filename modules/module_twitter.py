@@ -1,16 +1,6 @@
+# -*- coding: utf-8 -*-
+
 from util import pyfiurl
-
-def privcommand_twupdate(bot,user,channel,args):
-    """update pycookibot status on twitter"""
-    if isAdmin(user):
-        if args:
-	    twupdate(args)
-    	    return bot.say(channel, '%s, status updated' % getNick(user))
-
-	else:
-	    return bot.say(channel,'%s, what do you wanna post to tw?' % getNick(user))
-
-    return bot.say(channel,'%s, you are not admin.. sry' % getNick(user))
 
 def command_twitter(bot,user,channel,args):
     """ show last update from given twitter user"""
@@ -27,7 +17,20 @@ def command_twitter(bot,user,channel,args):
 	    return 
 
 	except: 
-	    bot.say(channel, '%s: no parece que %s sea un twitter valido' % (getNick(user), args))
+	    bot.say(channel, '%s: uhmf  %s is not a valid twitter user' % (getNick(user), args))
 
     else:
-	return bot.say(channel, '%s, mostrar el status de quien?' % getNick(user))
+	return bot.say(channel, '%s, which user status you wanna see?' % getNick(user))
+
+def privcommand_twupdate(bot,user,channel,args):
+    """update bot status on twitter"""
+
+    lvl = bot.checkValidHostmask(user)
+    if lvl and lvl >= 3:
+        if args:
+	    twupdate(args)
+    	    return bot.say(channel, '%s, status updated' % getNick(user))
+
+	else:
+	    return bot.say(channel,'%s, what do you wanna post to tw?' % getNick(user))
+
