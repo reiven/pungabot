@@ -9,13 +9,10 @@ Its based on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
 
 This version includes:
 
+* user authentication (using sqlite as db)
 * public & private messages handling
 * twitter integration
-* a couple of new modules
-
-This version will include (in dev)
-
-* user authentication
+* a couple of new usefull modules
 
 Python libraries needed
 ===========
@@ -33,6 +30,11 @@ $ vi bot.config
 $ python pyfibot.py 
 
 The last step will notify if you're missing any libraries 
+
+Documentation
+===========
+
+See the /doc directory for howtos
 
 License
 =======
