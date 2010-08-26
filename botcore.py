@@ -469,7 +469,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
     def joined(self, channel):
         """I joined a channel"""
-        self.channels_users[channel] = set()
         self._runhandler("joined", channel)
 
     def left(self, channel):
