@@ -204,7 +204,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
     def __init__(self, network):
         self.network = network
         self.nickname = self.network.nickname
-        self.channels_users = {}
 	self.authenticated = {}
 
         # text wrapper to clip overly long answers
@@ -282,12 +281,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
     def log(self, message):
         botId = "%s@%s" % (self.nickname, self.network.alias)
         log.info("%s: %s", botId, message)
-
-    def getNames(self, channel):
-        """List names of users visible to this user."""
-
-        self.sendLine("NAMES " + channel)
-	return self.channels_users[channel]
 
     def checkValidHostmask(self,user):
 	""" based in the user hostmask, check if he/it do auth. return user level"""
@@ -470,14 +463,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
         else:
     	    self.userLeft(prefix, None, params[0])
 
-    def irc_RPL_NAMREPLY(self, prefix, params):
-        """handle the names response from the server"""
-
-        channel = params[2]
-        names = params[3].split()
-	self.channels_users[channel].clear()
-	self.channels_users[channel].update(set(names))
-
     ###### HANDLERS ######
 
     ## ME
@@ -511,17 +496,14 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
     def userJoined(self, user, channel):
         """Someone joined"""
-	self.getNames(channel)
         self._runhandler("userJoined", user, channel)
 
     def userLeft(self, user, channel, message):
         """Someone left"""
-	self.getNames(channel)
         self._runhandler("userLeft", user, channel, message)
 
     def userKicked(self, kickee, channel, kicker, message):
         """Someone got kicked by someone"""
-	self.getNames(channel)
         self._runhandler("userKicked", kickee, channel, kicker, message)
 
     def action(self, user, channel, data):
@@ -534,7 +516,6 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
     def userRenamed(self, oldnick, newnick):
         """Someone changed their nick"""
-	self.getNames(channel)
         self._runhandler("userRenamed", oldnick, newnick)
 
     def receivedMOTD(self, motd):

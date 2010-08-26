@@ -95,11 +95,9 @@ def privcommand_check(bot, user, channel, args):
 
     if args and bot.checkValidHostmask(user):
         if args.lower() == "auth":
-	    if lvl:
-		bot.say(channel, "you are authenticated ok")
+	    bot.say(channel, "you are authenticated ok")
 
         if args.lower() == "level":
-	    if lvl:
-		bot.say(channel, "your actual level is %s" % lvl)
+	    bot.say(channel, "your actual level is %s" % bot.checkValidHostmask(user))
     else:
         bot.say(channel, "wrong usage, see help")

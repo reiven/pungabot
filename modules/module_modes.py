@@ -11,7 +11,6 @@ def handle_modeChanged(bot, user, channel, set, modes, args):
     """Mode changed on user or channel"""
 
     bot.log("%s - %s - %s - %s - %s" % (getNick(user), channel, set, modes, args))
-    bot.getNames(channel)
     return
 
 ##################################################################
@@ -29,26 +28,8 @@ def privcommand_topic(bot, user, channel, args):
 		bot.say(channel, 'sorry, i dont know that channel ')
 
 	else:
-    	    bot.say(channel, "Usage error.  See 'help names'")
+    	    bot.say(channel, "Usage error.  See 'help topic'")
 
-
-##################################################################
-
-def privcommand_names(bot, user, channel, args):
-    """Show users in #channel"""
-
-    if bot.checkValidHostmask(user):
-	if args: 
-	    if args in bot.network.channels:
-		users = bot.getNames(args)
-		for u in users:
-		    bot.say(channel,"%s" % (u))
-
-    	    else:
-		bot.say(channel, 'sorry, i dont know that channel ')
-
-	else:
-    	    bot.say(channel, "Usage error.  See 'help names'")
 
 ##################################################################
 
