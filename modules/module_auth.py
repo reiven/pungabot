@@ -19,6 +19,7 @@ def privcommand_auth(bot, user, channel, args):
 		bot.authenticated[getHostmask(user)] = comp[2]
 		cursor.execute("UPDATE users SET hostmask = '%s' WHERE name = '%s'" % (getHostmask(user),name))
 		conn.commit()
+		bot.reloadUsers()
 		bot.say(channel,"welcome %s (%s)" % (str(comp[0]),getHostmask(user)))
 		bot.log("%s was authenticated sucessfully" % str(comp[0]))
 
@@ -42,6 +43,7 @@ def privcommand_adduser(bot,user,channel,args):
 	    cursor = conn.cursor()
 	    cursor.execute("INSERT INTO users VALUES (NULL,?,?,'1',NULL,NULL)",(unicode(user.lower(),'utf-8'),hashlib.sha1(passwd).hexdigest()))
 	    conn.commit()
+	    bot.reloadUsers()
 	    bot.say(channel, "%s added with passwd (%s) " % (user.lower(),password))
 
 	else:
@@ -58,6 +60,7 @@ def privcommand_addbot(bot,user,channel,args):
 	    cursor = conn.cursor()
 	    cursor.execute("INSERT INTO users VALUES (NULL,?,NULL,'4',?,NULL)",(unicode(botname.lower(),'utf-8'),hostmask))
 	    conn.commit()
+	    bot.reloadUsers()
 	    bot.say(channel, "%s added with hostmask (%s) " % (botname.lower(),hostmask))
 
 	else:
@@ -81,6 +84,7 @@ def privcommand_sethost(bot, user, channel, args):
 		bot.authenticated[newhm] = str(comp[1])
         	cursor.execute("UPDATE users SET hostmask = '%s' WHERE name = '%s'" % (newhm,str(comp[0])))
     	        conn.commit()
+		bot.reloadUsers()
 		bot.say(channel,"ok, %s hostmask updated to %s" % (str(comp[0]),newhm))
 	    else: 
 		bot.say(channel,"wrong password")

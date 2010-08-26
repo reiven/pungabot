@@ -237,15 +237,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
 
-	# first we should get all the hostmask for the admins/bots
-        conn = sqlite3.connect(self.nickname + ".db")
-        cursor = conn.cursor()
-	cursor.execute ("SELECT hostmask,level FROM users ORDER BY level")
-	for mask in cursor:
-	    if mask[0] != None:
-		log.debug("debug: %s - %s" % (mask[0],mask[1]))
-		self.authenticated[mask[0]] = mask[1]
-	conn.close()
+	self.reloadUsers()
 
         for chan in self.network.channels:
             # defined as a tuple, channel has a key
@@ -291,6 +283,17 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 		return level
 
 	return False
+
+    def reloadUsers(self):
+	# first we should get all the hostmask for the admins/bots
+        conn = sqlite3.connect(self.nickname + ".db")
+        cursor = conn.cursor()
+	cursor.execute ("SELECT hostmask,level FROM users ORDER BY level")
+	for mask in cursor:
+	    if mask[0] != None:
+		log.debug("debug: %s - %s" % (mask[0],mask[1]))
+		self.authenticated[mask[0]] = mask[1]
+	conn.close()
 
 
     ###### COMMUNICATION
