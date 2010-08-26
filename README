@@ -1,5 +1,4 @@
-Pyfibot-punga
-
+pungaBot
 
 Description
 ===========
@@ -25,9 +24,9 @@ pystemmer (http://pypi.python.org/pypi/PyStemmer/1.1.0)
 Usage
 ===========
 
-$ cd pyfibot-punga
+$ cd pungabot
 $ vi bot.config
-$ python pyfibot.py 
+$ python pungabot.py 
 
 The last step will notify if you're missing any libraries 
 
