@@ -8,7 +8,7 @@ import string
 import Stemmer
 
 FEEDS = {
-   'Clarin': 'http://www.clarin.com/diario/hoy/um/sumariorss.xml',
+   'Clarín': 'http://www.clarin.com/rss/',
    'InfoBAE': 'http://www.infobae.com/adjuntos/html/RSS/hoy.xml',
    'La Nacion': 'http://www.lanacion.com.ar/herramientas/rss/index.asp',
    'La Prensa': 'http://www.laprensa.com.ar/ResourcesManager.aspx?Resource=Rss.aspx&Rss=4',
