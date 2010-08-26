@@ -187,10 +187,10 @@ class CoreCommands(object):
             self.say(channel, "Available commands: %s" % commandlist)
 
 
-class PyFiBot(irc.IRCClient, CoreCommands):
-    """PyFiBot-punga"""
+class pungaBot(irc.IRCClient, CoreCommands):
+    """pungaBot"""
 
-    nickname = "pyfibot"
+    nickname = "pungabot"
     realname = "cookiebot"
 
     # send 1 msg per 1/2 sec
@@ -213,7 +213,7 @@ class PyFiBot(irc.IRCClient, CoreCommands):
 
 
     def __repr__(self):
-        return 'PyFiBot-punga(%r, %r)' % (self.nickname, self.network.address)
+        return 'pungaBot(%r, %r)' % (self.nickname, self.network.address)
 
     ###### CORE 
 

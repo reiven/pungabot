@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""A modular python bot based on the twisted matrix irc library"""
+"""A modular python irc bot powered by twisted matrix irc library
+
+   based on pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad"""
 
 # Copyright 2010 federico reiven
 # License: GPL v3
@@ -153,7 +155,7 @@ class BotURLOpener(urllib.FancyURLopener):
 
     def __init__(self, *args):
         # Firefox 1.0PR on w2k
-        self.version = "Mozilla/5.0 (Windows; U; Windows NT 5.0; rv:1.7.3) PyFiBot"
+        self.version = "Mozilla/5.0 (Windows; U; Windows NT 5.0; rv:1.7.3) pungaBot"
         urllib.FancyURLopener.__init__(self, *args)
 
     def prompt_user_passwd(self, host, realm):
@@ -195,12 +197,12 @@ class ThrottledClientFactory(protocol.ClientFactory):
         log.info("connection failed (%s): reconnecting in %d seconds" % (reason, self.failedDelay))
         reactor.callLater(self.failedDelay, connector.connect)
 
-class PyFiBotFactory(ThrottledClientFactory):
-    """python.fi bot factory"""
+class pungaBotFactory(ThrottledClientFactory):
+    """python  bot factory"""
 
     version = "20100813.0"
 
-    protocol = botcore.PyFiBot
+    protocol = botcore.pungaBot
     allBots = None
     moduledir = os.path.join(sys.path[0], "modules/")
     startTime = None
@@ -402,7 +404,7 @@ def create_example_conf():
 
 
 def init_logging():
-    filename = os.path.join(sys.path[0], 'pyfibot.log')
+    filename = os.path.join(sys.path[0], 'pungabot.log')
     # get root logger
     logger = logging.getLogger()
     if False:
@@ -432,7 +434,7 @@ if __name__ == '__main__':
             print 'No config file found, there is an example config (bot.config.example) for you. Please edit it and rename to bot.config or delete it to generate a new example config.'
         sys.exit(1)
 
-    factory = PyFiBotFactory(config)
+    factory = pungaBotFactory(config)
 
     # write pidfile, for eggchk
     pidfile = config['nick'] + ".pid"
