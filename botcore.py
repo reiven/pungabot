@@ -248,7 +248,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         log.info("joined %d channel(s): %s" % (len(self.network.channels), ", ".join(self.network.channels)))
 
-
     def pong(self, user, secs):
         self.pingAve = ((self.pingAve * 5) + secs) / 6.0
 
@@ -295,7 +294,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
 		self.authenticated[mask[0]] = mask[1]
 	conn.close()
 
-
     ###### COMMUNICATION
 
     def privmsg(self, user, channel, msg):
@@ -311,18 +309,14 @@ class pungaBot(irc.IRCClient, CoreCommands):
         lnick = self.nickname.lower()
         nickl = len(lnick)
 
-	# bot private commands
         if channel == lnick:
-
-	    log.debug("private msg")
-
+	    # bot private commands
     	    if msg.startswith(self.factory.config['commandchar']):
         	cmnd = msg[len(self.factory.config['commandchar']):]
         	self._privcommand(user, self.factory.getNick(user), cmnd)
 
         else:
 	    # public direct message to the bot
-	    log.debug("public msg")
             if lmsg.startswith(lnick) and len(lmsg) > nickl and lmsg[nickl] in string.punctuation:
 		log.debug("they are talking to me!")
 		# if a message was sent talking to the bot, use bola8 command
@@ -340,7 +334,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         # run privmsg handlers
         self._runhandler("privmsg", user, channel, msg)
-
 
     def _runhandler(self, handler, *args, **kwargs):
         """Run a handler for an event"""
