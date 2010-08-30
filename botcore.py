@@ -310,19 +310,15 @@ class pungaBot(irc.IRCClient, CoreCommands):
         nickl = len(lnick)
 
         if channel == lnick:
-	    # bot private commands
+	    # bot private commands (privcommand)
     	    if msg.startswith(self.factory.config['commandchar']):
         	cmnd = msg[len(self.factory.config['commandchar']):]
         	self._privcommand(user, self.factory.getNick(user), cmnd)
 
         else:
-	    # public direct message to the bot
-            if lmsg.startswith(lnick) and len(lmsg) > nickl and lmsg[nickl] in string.punctuation:
-		log.debug("they are talking to me!")
-		# if a message was sent talking to the bot, use bola8 command
-                msg = "!bola8 " + msg[len(self.nickname) + 1:].lstrip()
 
-    	    if msg.startswith(self.factory.config['commandchar']):
+    	    # channel public commands (command)
+	    if msg.startswith(self.factory.config['commandchar']):
         	cmnd = msg[len(self.factory.config['commandchar']):]
         	self._command(user, channel, cmnd)
 
