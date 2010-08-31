@@ -4,6 +4,7 @@ from pysqlite2 import dbapi2 as sqlite3
 import re
 import string
 import os
+import Stemmer
 
 def sanitize(buf):
     return filter(lambda x: x in string.printable,buf)
@@ -35,10 +36,8 @@ def command_quote(bot,user, channel, args):
 	    for line in getQuote(cursor,channel,quoteId).split('|'):
 		bot.say(channel,'%s' % line.strip())
 
-	    return
-
 	else:
-	    return bot.say(channel,'%s not found, %s' % (args, getNick(user)))
+	    bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
     else:
         conn = sqlite3.connect(bot.nickname + ".db");
@@ -49,9 +48,34 @@ def command_quote(bot,user, channel, args):
     	for line in getQuote(cursor,channel,quoteId).split('|'):
 	    bot.say(channel,'%s' % line.strip())
 
-	return
-
     conn.close()
+
+def command_quotes(bot,user, channel, args):
+    """show stemmer quote text"""
+
+    if args:
+
+	if "'" in args: 
+	    return bot.say(channel,'hax0r')
+
+	stemmer = Stemmer.Stemmer('spanish')
+        conn = sqlite3.connect(bot.nickname + ".db");
+	conn.create_function("regexp", 2, regexp)
+	cursor = conn.cursor()
+	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args),'utf-8')))
+	comp = cursor.fetchone()
+	if comp:
+	    quoteId = str(comp[0])
+	    for line in getQuote(cursor,channel,quoteId).split('|'):
+		bot.say(channel,'%s' % line.strip())
+
+	else:
+	    bot.say(channel,'%s not found, %s' % (args, getNick(user)))
+
+        conn.close()
+
+    else:
+	return bot.say(channel, '%s: what to do wanna search for?' % getNick(user))
 
 def command_add(bot,user, channel, args):
     """add new quote"""
@@ -72,10 +96,10 @@ def command_add(bot,user, channel, args):
         if (quoteId%100==0):
 	    bot.say(channel, 'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % quoteId)
 
-	return
+	conn.close()
 
     else:
-	return bot.say(channel, '%s: what do you want to add?' % getNick(user))
+	bot.say(channel, '%s: what do you want to add?' % getNick(user))
 
 def command_lastquote(bot,user, channel, args):
     """show last added quote"""
@@ -88,7 +112,6 @@ def command_lastquote(bot,user, channel, args):
     for line in getQuote(cursor,channel,quoteId).split('|'):
 	bot.say(channel,'%s' % line.strip())
 
-    return
     conn.close()
 
 def command_show(bot,user,channel,args):
@@ -107,21 +130,11 @@ def command_show(bot,user,channel,args):
 	    for line in getQuote(cursor,channel,quoteId).split('|'):
 		bot.say(channel,'%s' % line.strip())
 
-	    return
-
 	else:
-	    return bot.say(channel,'%s: %s is cualquiera, not found' % (getNick(user),args))
+	    bot.say(channel,'%s: %s is cualquiera, not found' % (getNick(user),args))
+
+	conn.close()
 
     else:
-	return bot.say(channel, '%s: what id do you wanna see?' % getNick(user))
-
-#def command_pid(bot,user,channel,args):
-
-#    u = 'ƃuıʇsǝʇ'
-#    pid = unicode(u,'utf-8')
-
-#    bot.say(channel, '%s' % pid.encode('utf-8'))
-
-##################################################################
-
+	bot.say(channel, '%s: what id do you wanna see?' % getNick(user))
 
