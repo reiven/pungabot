@@ -17,7 +17,7 @@ import urllib
 import HTMLParser
 import logging
 import logging.handlers
-import twitter
+import tweepy
 import commands
 
 try:
@@ -46,6 +46,8 @@ import botcore
 
 log = logging.getLogger('core')
 
+consumer_key="tsh79PNCdSogwg9Dx3VNg"
+consumer_secret="Kg8H9ninvOkQfsiIyw03r2QsUGDOXqWBjWB1Nzt9lA"
 
 class URLCacheItem(object):
     """URL cache item object, fetches data only when needed"""
@@ -367,12 +369,12 @@ class pungaBotFactory(ThrottledClientFactory):
     def twupdate(self, post):
 	"""update our twitter status"""
 
-	twapi.PostUpdates( '%s' % post )
+	twapi.update_status( '%s' % post )
 
     def twget(self,user):
 	"""get last tweet from @user"""
 
-	status = twapi.GetUserTimeline(user,count='1')
+	status = twapi.user_timeline(user,count='1')
 	for s in status:
 	    return s.text.encode('utf-8')
 
@@ -444,13 +446,17 @@ if __name__ == '__main__':
 
     # config twitter
     if config['twitter']:
-	twuser = config['twitter'][0]
-	twpass = config['twitter'][1]
+	key = config['twitter'][0]
+	secret = config['twitter'][1]
 	try:
-	    twapi = twitter.Api(username=twuser,password=twpass)
-	    log.info('TWITTER connected as %s' % twuser)
+	    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+            auth.set_access_token(key, secret)
+	    twapi = tweepy.API(auth)
+
+#	    twapi = twitter.Api(username=twuser,password=twpass)
+	    log.info('connection to TWITTER ok')
 	except:
-	    log.info('could not connect to TWITTER %s' % twuser)
+	    log.info('could not connect to TWITTER')
 
 
     for network, settings in config['networks'].items():
