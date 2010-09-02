@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""A modular python irc bot powered by twisted matrix irc library
+""" Pungabot:
 
-   based on pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad"""
+    Python , twisted powered irc bot with userbase and twitter support
+
+    based on pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad"""
 
 # Copyright 2010 federico reiven
 # License: GPL v3
@@ -19,12 +21,9 @@ import logging
 import logging.handlers
 import tweepy
 import commands
-
-try:
-    import yaml
-except ImportError:
-    print "PyYAML not found, please install from http://pyyaml.org/wiki/PyYAML"
-    sys.exit(1)
+import yaml
+from BeautifulSoup import BeautifulSoup, UnicodeDammit
+from util import *
 
 # twisted imports
 try:
@@ -35,17 +34,17 @@ except ImportError:
     print "Twisted library not found, please install Twisted from http://twistedmatrix.com/products/download"
     sys.exit(1)
 
-from util import *
-from BeautifulSoup import BeautifulSoup, UnicodeDammit
-
-# default timeout for socket connections
-import socket
-socket.setdefaulttimeout(20)
-
 import botcore
 
 log = logging.getLogger('core')
 
+# default timeout for socket connections
+import socket
+
+socket.setdefaulttimeout(20)
+
+
+# twitter api keys
 consumer_key="tsh79PNCdSogwg9Dx3VNg"
 consumer_secret="Kg8H9ninvOkQfsiIyw03r2QsUGDOXqWBjWB1Nzt9lA"
 

@@ -22,7 +22,6 @@ import fnmatch
 from util import pyfiurl
 from pysqlite2 import dbapi2 as sqlite3
 
-
 # line splitting
 import textwrap
 
@@ -31,8 +30,6 @@ __pychecker__ = 'unusednames=i, classattr'
 log = logging.getLogger("bot")
 
 class CoreCommands(object):
-    def command_echo(self, user, channel, args):
-        self.say(channel, "%s: %s" % (user, args))
 
     def privcommand_ping(self, user, channel, args):
         self.say(channel, "%s: My current ping is %.0fms" % (self.factory.getNick(user), self.pingAve*100.0))
@@ -190,7 +187,7 @@ class CoreCommands(object):
 class pungaBot(irc.IRCClient, CoreCommands):
     """pungaBot"""
 
-    nickname = "pungabot"
+    nickname = "pichu"
     realname = "cookiebot"
 
     # send 1 msg per 1/2 sec
@@ -205,12 +202,12 @@ class pungaBot(irc.IRCClient, CoreCommands):
         self.network = network
         self.nickname = self.network.nickname
 	self.authenticated = {}
+#	self.commandchar = self.config['commandchar']
 
         # text wrapper to clip overly long answers
         self.tw = textwrap.TextWrapper(width=400, break_long_words=True)
 
         log.info("bot initialized")
-
 
     def __repr__(self):
         return 'pungaBot(%r, %r)' % (self.nickname, self.network.address)
@@ -284,13 +281,15 @@ class pungaBot(irc.IRCClient, CoreCommands):
 	return False
 
     def reloadUsers(self):
+
+	self.authenticated = {}
 	# first we should get all the hostmask for the admins/bots
         conn = sqlite3.connect(self.nickname + ".db")
-        cursor = conn.cursor()
-	cursor.execute ("SELECT hostmask,level FROM users ORDER BY level")
-	for mask in cursor:
+        c = conn.cursor()
+	c.execute ("SELECT hostmask,level,name FROM users ORDER BY level")
+	for mask in c:
 	    if mask[0] != None:
-		log.debug("debug: %s - %s" % (mask[0],mask[1]))
+		log.info("loaded user: %s(%s)" % (mask[2],mask[0]))
 		self.authenticated[mask[0]] = mask[1]
 	conn.close()
 
