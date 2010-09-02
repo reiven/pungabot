@@ -26,7 +26,7 @@ def command_quote(bot,user, channel, args):
 	if "'" in args: 
 	    return bot.say(channel,'hax0r')
 
-        conn = sqlite3.connect(bot.nickname + ".db");
+        conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
 	conn.create_function("regexp", 2, regexp)
 	cursor = conn.cursor()
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(args,'utf-8')))
@@ -40,7 +40,7 @@ def command_quote(bot,user, channel, args):
 	    bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
     else:
-        conn = sqlite3.connect(bot.nickname + ".db");
+        conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
 	cursor = conn.cursor()
 	cursor.execute("SELECT quote_id FROM quotes ORDER BY RANDOM() LIMIT 1")
 	comp = cursor.fetchone()
@@ -59,7 +59,7 @@ def command_quotes(bot,user, channel, args):
 	    return bot.say(channel,'hax0r')
 
 	stemmer = Stemmer.Stemmer('spanish')
-        conn = sqlite3.connect(bot.nickname + ".db");
+        conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
 	conn.create_function("regexp", 2, regexp)
 	cursor = conn.cursor()
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args),'utf-8')))
@@ -81,7 +81,7 @@ def command_add(bot,user, channel, args):
     """add new quote"""
 
     if args:
-	conn = sqlite3.connect(bot.nickname + ".db");
+	conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
 	cursor = conn.cursor()
 	cursor.execute("INSERT INTO quotes VALUES (NULL,?,'0',?)",(unicode(args,'utf-8'),getNick(user)))
         for line in args.split('|'):
@@ -104,7 +104,7 @@ def command_add(bot,user, channel, args):
 def command_lastquote(bot,user, channel, args):
     """show last added quote"""
 
-    conn = sqlite3.connect(bot.nickname + ".db");
+    conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
     cursor = conn.cursor()
     cursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
     comp = cursor.fetchone()
@@ -121,7 +121,7 @@ def command_show(bot,user,channel,args):
         if "'" in args:
             return bot.say(channel,'hax0r')
 
-	conn = sqlite3.connect(bot.nickname + ".db");
+	conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
 	cursor = conn.cursor()
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
 	comp = cursor.fetchone()

@@ -284,7 +284,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
 	self.authenticated = {}
 	# first we should get all the hostmask for the admins/bots
-        conn = sqlite3.connect(self.nickname + ".db")
+        conn = sqlite3.connect(str.join('.',(self.nickname , 'db')))
         c = conn.cursor()
 	c.execute ("SELECT hostmask,level,name FROM users ORDER BY level")
 	for mask in c:

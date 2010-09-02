@@ -437,7 +437,7 @@ if __name__ == '__main__':
     factory = pungaBotFactory(config)
 
     # write pidfile, for eggchk
-    pidfile = config['nick'] + ".pid"
+    pidfile = str.join('.',(config['nick'] , 'pid'))
     file = open(pidfile,'w')
     file.write('%s\n' % os.getpid())
     file.close()
