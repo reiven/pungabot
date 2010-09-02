@@ -19,7 +19,9 @@ def privcommand_topic(bot, user, channel, args):
     """Usage: !topic #channel (new topic message)"""
 
     if bot.checkValidHostmask(user):
-	if args: 
+	if len(args.split()) >= 2: 
+	    for tito in bot.network.channels:
+		bot.log("%s - %s" % (tito,channel))
 	    if channel in bot.network.channels:
 		bot.topic(channel,args)
 		bot.say(user, 'ok, topic changed on %s' % channel)
@@ -41,7 +43,7 @@ def privcommand_op(bot, user, channel, args):
             passwd,toop,w2o = args.split()
 	    if w2o in bot.network.channels:
         	passwd = hashlib.sha1(passwd).hexdigest()
-        	conn = sqlite3.connect(bot.nickname + ".db")
+        	conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
         	cursor = conn.cursor()
         	cursor.execute("SELECT name FROM users where passwd = '%s'" % passwd)
         	comp = cursor.fetchone()
@@ -63,7 +65,7 @@ def privcommand_deop(bot, user, channel, args):
             passwd,deop,w2o = args.split()
 	    if w2o in bot.network.channels:
         	passwd = hashlib.sha1(passwd).hexdigest()
-        	conn = sqlite3.connect(bot.nickname + ".db")
+        	conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
         	cursor = conn.cursor()
         	cursor.execute("SELECT name FROM users where passwd = '%s'" % passwd)
         	comp = cursor.fetchone()
