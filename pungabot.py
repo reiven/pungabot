@@ -43,7 +43,6 @@ import socket
 
 socket.setdefaulttimeout(20)
 
-
 # twitter api keys
 consumer_key="tsh79PNCdSogwg9Dx3VNg"
 consumer_secret="Kg8H9ninvOkQfsiIyw03r2QsUGDOXqWBjWB1Nzt9lA"
@@ -201,7 +200,7 @@ class ThrottledClientFactory(protocol.ClientFactory):
 class pungaBotFactory(ThrottledClientFactory):
     """python  bot factory"""
 
-    version = "20100813.0"
+    version = "20100902.0"
 
     protocol = botcore.pungaBot
     allBots = None
@@ -451,12 +450,10 @@ if __name__ == '__main__':
 	    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
             auth.set_access_token(key, secret)
 	    twapi = tweepy.API(auth)
-
-#	    twapi = twitter.Api(username=twuser,password=twpass)
 	    log.info('connection to TWITTER ok')
+
 	except:
 	    log.info('could not connect to TWITTER')
-
 
     for network, settings in config['networks'].items():
         # use network specific nick if one has been configured

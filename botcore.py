@@ -202,7 +202,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
         self.network = network
         self.nickname = self.network.nickname
 	self.authenticated = {}
-#	self.commandchar = self.config['commandchar']
 
         # text wrapper to clip overly long answers
         self.tw = textwrap.TextWrapper(width=400, break_long_words=True)
@@ -281,6 +280,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
 	return False
 
     def reloadUsers(self):
+	""" (re)load users from database. used for authentication  """
 
 	self.authenticated = {}
 	# first we should get all the hostmask for the admins/bots
