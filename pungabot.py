@@ -215,12 +215,14 @@ class pungaBotFactory(ThrottledClientFactory):
         self.data = {}
         self.data['networks'] = {}
         self.ns = {}
+	self.twapi = {}
 
         # cache url contents for 5 minutes, check for old entries every minute
         self._urlcache = timeoutdict.TimeoutDict(timeout=300, pollinterval=60)
 
         if not os.path.exists("data"):
             os.mkdir("data")
+
 
     def startFactory(self):
         self.allBots = {}
@@ -229,6 +231,18 @@ class pungaBotFactory(ThrottledClientFactory):
         self._loadmodules()
 
         ThrottledClientFactory.startFactory(self)
+
+	if self.config['twitter']:
+	    key = config['twitter'][0]
+	    secret = config['twitter'][1]
+	    try:
+		auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+        	auth.set_access_token(key, secret)
+		self.twapi = tweepy.API(auth)
+		log.info('connection to TWITTER ok')
+
+	    except:
+		log.info('could not connect to TWITTER')
 
         log.info("factory started")
 
@@ -328,8 +342,7 @@ class pungaBotFactory(ThrottledClientFactory):
         g['getUrl'] = self.getUrl
         g['getNick'] = self.getNick
 	g['getHostmask'] = self.getHostmask
-	g['twupdate'] = self.twupdate
-	g['twget'] = self.twget
+	g['twapi'] = self.twapi
         return g
 
     def getUrl(self, url, nocache=False):
@@ -367,12 +380,12 @@ class pungaBotFactory(ThrottledClientFactory):
     def twupdate(self, post):
 	"""update our twitter status"""
 
-	twapi.update_status( '%s' % post )
+	self.twapi.update_status( '%s' % post )
 
     def twget(self,user):
 	"""get last tweet from @user"""
 
-	status = twapi.user_timeline(user,count='1')
+	status = self.twapi.user_timeline(user,count='1')
 	for s in status:
 	    return s.text.encode('utf-8')
 
@@ -441,19 +454,6 @@ if __name__ == '__main__':
     file = open(pidfile,'w')
     file.write('%s\n' % os.getpid())
     file.close()
-
-    # config twitter
-    if config['twitter']:
-	key = config['twitter'][0]
-	secret = config['twitter'][1]
-	try:
-	    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-            auth.set_access_token(key, secret)
-	    twapi = tweepy.API(auth)
-	    log.info('connection to TWITTER ok')
-
-	except:
-	    log.info('could not connect to TWITTER')
 
     for network, settings in config['networks'].items():
         # use network specific nick if one has been configured
