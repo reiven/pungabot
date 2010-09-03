@@ -215,7 +215,6 @@ class pungaBotFactory(ThrottledClientFactory):
         self.data = {}
         self.data['networks'] = {}
         self.ns = {}
-	self.twapi = {}
 
         # cache url contents for 5 minutes, check for old entries every minute
         self._urlcache = timeoutdict.TimeoutDict(timeout=300, pollinterval=60)
@@ -223,15 +222,7 @@ class pungaBotFactory(ThrottledClientFactory):
         if not os.path.exists("data"):
             os.mkdir("data")
 
-
-    def startFactory(self):
-        self.allBots = {}
-        self.starttime = time.time()
-
-        self._loadmodules()
-
-        ThrottledClientFactory.startFactory(self)
-
+	# connect to twitter
 	if self.config['twitter']:
 	    key = config['twitter'][0]
 	    secret = config['twitter'][1]
@@ -243,6 +234,14 @@ class pungaBotFactory(ThrottledClientFactory):
 
 	    except:
 		log.info('could not connect to TWITTER')
+
+    def startFactory(self):
+        self.allBots = {}
+        self.starttime = time.time()
+
+        self._loadmodules()
+
+        ThrottledClientFactory.startFactory(self)
 
         log.info("factory started")
 
@@ -376,18 +375,6 @@ class pungaBotFactory(ThrottledClientFactory):
 
         @return: nick"""
         return user.split('!', 1)[1]
-
-    def twupdate(self, post):
-	"""update our twitter status"""
-
-	self.twapi.update_status( '%s' % post )
-
-    def twget(self,user):
-	"""get last tweet from @user"""
-
-	status = self.twapi.user_timeline(user,count='1')
-	for s in status:
-	    return s.text.encode('utf-8')
 
 def create_example_conf():
     """Create an example configuration file"""
