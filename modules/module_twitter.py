@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+#
+# we can use any method inside tweepy from modules, thanks to twapi global
+#
+
 from util import pyfiurl
 
 def command_twitter(bot,user,channel,args):
