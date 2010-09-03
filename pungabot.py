@@ -29,7 +29,6 @@ from util import *
 try:
     from twisted.words.protocols import irc
     from twisted.internet import reactor, protocol, threads, defer
-    from twisted.python import rebuild
 except ImportError:
     print "Twisted library not found, please install Twisted from http://twistedmatrix.com/products/download"
     sys.exit(1)
