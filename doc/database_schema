@@ -1,0 +1,18 @@
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    passwd TEXT,
+    level INTEGER NOT NULL default '1',
+    hostmask TEXT ,
+    email TEXT
+    );
+
+CREATE TABLE quotes (
+    quote_id INTEGER PRIMARY KEY,
+    quote_text TEXT NOT NULL,
+    quote_votes INTEGER NOT NULL default '0',
+    quote_added_by TEXT NOT NULL default '');
+
+CREATE TABLE votes ( 
+    quote_id INTEGER NOT NULL default '0',
+    user_id INTEGER NOT NULL default '0');
