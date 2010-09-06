@@ -11,7 +11,7 @@ def command_twitter(bot,user,channel,args):
 
     if args:
 	try:
-	    status = twapi.user_timeline(args,count='1')
+	    status = twapi.user_timeline(args,count='1',include_rts='true')
 
 	except: 
 	    return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), args))
