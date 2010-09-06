@@ -9,7 +9,7 @@ from util import pyfiurl
 def command_twitter(bot,user,channel,args):
     """ show last update from given twitter user"""
 
-    if args:
+    if len(args.split()) == 1:
 	try:
 	    status = twapi.user_timeline(args,count='1',include_rts='true')
 
@@ -40,3 +40,17 @@ def privcommand_twupdate(bot,user,channel,args):
 	else:
 	    return bot.say(user,'%s, what do you wanna post to tw?' % getNick(user))
 
+def command_twitterwho(bot,user,channel,args):
+    """show twitter information about a user"""
+
+    if len(args.split()) == 1:
+        try:
+            who = twapi.get_user(screen_name=args)
+
+        except:
+            return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), args))
+
+        bot.say(channel, '%s: %s (%s)' % (args,who.name.encode('utf-8'),who.url.encode('utf-8')))
+
+    else:
+	return bot.say(channel, 'usage error, see !help twitterwho')
