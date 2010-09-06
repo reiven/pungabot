@@ -1,0 +1,57 @@
+Authentication
+
+Actually the authentication is based in user - password - hostmask basis.
+Once you're authenticated, the bot saves your current hostmask in the authdb, and you
+can manually change that hostmask to something more generic if your hostmask is changed
+dynamically (ie an adsl connection)
+
+Also, the bot handle different levels for the users and bots added to the authdb, which
+can be seen in the auto-op module, which only autoop bots and admins (users with level 
+greater than 4)
+
+Actual levels
+
+1 - user
+2 - user
+3 - admin
+4 - bot
+5 - master
+
+punga only contains a method called checkValidHostmask which verify based on the user
+hostmask if the user is in the database and also if he did authentication, and return
+the user level.
+
+all the authentication commands are handled by the module_auth.
+
+available auth commands
+
+for users:
+
+    !auth user [password] 
+	authenticate with user/password
+    !check auth
+	check if your actual hostmask did autoauth
+    !check level
+	check my level on the bot
+    !check hostmask
+	check my hostmask on the database
+    !set [password] hostmask
+	change hostmask on the database
+    !set [password] email
+	change email on the database (for password recovery)
+    !chpass [password] [newpassword]
+	simply password change
+
+for admins:
+
+    !adduser user password
+	add new user
+    !addbot botname hostmask
+	add new bot, setting his default hostmask
+    !deluser [password] user
+	delete user. password is requiered
+    !delbot [password] botname
+	delete bot. password is requiered
+    !chlevel [password] user
+	change user level to admin 
+
