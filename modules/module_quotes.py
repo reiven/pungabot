@@ -13,6 +13,11 @@ def regexp(expr, item):
     r = re.compile(expr, re.MULTILINE | re.IGNORECASE)
     return r.match(item) is not None
 
+def getConn(db):
+    conn = sqlite3.connect(db)
+    conn.create_function("regexp", 2, regexp)
+    return conn.cursor()
+
 def getQuote(cursor,channel,quoteId):
     cursor.execute("SELECT quote_id, quote_text FROM quotes WHERE quote_id = '%s' LIMIT 1" % quoteId)
     comp = cursor.fetchone()
@@ -26,9 +31,7 @@ def command_quote(bot,user, channel, args):
 	if "'" in args: 
 	    return bot.say(channel,'hax0r')
 
-        conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
-	conn.create_function("regexp", 2, regexp)
-	cursor = conn.cursor()
+	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(args,'utf-8')))
 	comp = cursor.fetchone()
 	if comp:
@@ -40,8 +43,7 @@ def command_quote(bot,user, channel, args):
 	    bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
     else:
-        conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
-	cursor = conn.cursor()
+	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("SELECT quote_id FROM quotes ORDER BY RANDOM() LIMIT 1")
 	comp = cursor.fetchone()
 	quoteId = str(comp[0])
@@ -59,9 +61,7 @@ def command_quotes(bot,user, channel, args):
 	    return bot.say(channel,'hax0r')
 
 	stemmer = Stemmer.Stemmer('spanish')
-        conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
-	conn.create_function("regexp", 2, regexp)
-	cursor = conn.cursor()
+	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args),'utf-8')))
 	comp = cursor.fetchone()
 	if comp:
@@ -81,8 +81,7 @@ def command_add(bot,user, channel, args):
     """add new quote"""
 
     if args:
-	conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
-	cursor = conn.cursor()
+	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("INSERT INTO quotes VALUES (NULL,?,'0',?)",(unicode(args,'utf-8'),getNick(user)))
         for line in args.split('|'):
                     twupdate(unicode(line.strip(),'utf-8'))
@@ -104,8 +103,7 @@ def command_add(bot,user, channel, args):
 def command_lastquote(bot,user, channel, args):
     """show last added quote"""
 
-    conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
-    cursor = conn.cursor()
+    cursor = getConn(str.join('.',(bot.nickname , 'db')))
     cursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
     comp = cursor.fetchone()
     quoteId = str(comp[0])
@@ -121,8 +119,7 @@ def command_show(bot,user,channel,args):
         if "'" in args:
             return bot.say(channel,'hax0r')
 
-	conn = sqlite3.connect(str.join('.',(bot.nickname , 'db')))
-	cursor = conn.cursor()
+	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
 	comp = cursor.fetchone()
 	if comp:
