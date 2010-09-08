@@ -5,18 +5,17 @@ import random
 
 def handle_privmsg (bot, user, channel, message):
 
-    ono = random.randrange(10)
     # we have a chances of 30% of use this module
-    if ono < 7:
-        return
+    if random.randrange(10) < 7:
+	return
 
-    MSG = ['papel' ,'merca' ,'blanca', 'cameruza', 'pala','pase','toque',
-            'pasta','bicho',
+    MSG = ['papel' ,'merca' ,'blanca', 'cameruza', 'pala','pase','toque','bolsa',
+            'pasta','bicho','pasteleta','pastilla','fafafa','sarlanga',
             'tripa','pepa','trip','carton','gotero','gota',
-            'porro','faso','churro','maconia','fumar','volar']
+            'porro','faso','churro','maconia','fumar','yerba','volar']
     regex = re.compile('(' + '|'.join(MSG) + ')', re.IGNORECASE)
 
-    if regex.findall(message):
+    if not message.startswith("!") and regex.findall(message):
 	for loque in regex.findall(message):
 	    bot.say(channel, "dijo %s!! JA"  % loque)
 
