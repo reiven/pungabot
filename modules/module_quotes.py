@@ -84,7 +84,7 @@ def command_add(bot,user, channel, args):
 	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("INSERT INTO quotes VALUES (NULL,?,'0',?)",(unicode(args,'utf-8'),getNick(user)))
         for line in args.split('|'):
-                    twupdate(unicode(line.strip(),'utf-8'))
+                    twapi.update_status(unicode(line.strip(),'utf-8'))
 
 	conn.commit()
         bot.say(channel, 'ok,%s quote added' % getNick(user))
