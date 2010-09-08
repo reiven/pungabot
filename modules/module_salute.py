@@ -4,8 +4,7 @@ import random
 def handle_userJoined(bot,user,channel):
     """Someone Joined, lets salute him"""
 
-    ono = random.randrange(10)
-    if ono < 8:
+    if random.randrange(10) < 8:
 	return
 
     tarde = datetime.time(13,00)
