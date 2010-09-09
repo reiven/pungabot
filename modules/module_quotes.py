@@ -48,7 +48,6 @@ def command_quote(bot,user, channel, args):
     	for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 	    bot.say(channel,'%s' % line.strip())
 
-    conn.close()
 
 def command_quotes(bot,user, channel, args):
     """show stemmer quote text"""
@@ -69,8 +68,6 @@ def command_quotes(bot,user, channel, args):
 	else:
 	    bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
-        conn.close()
-
     else:
 	return bot.say(channel, '%s: what to do wanna search for?' % getNick(user))
 
@@ -90,8 +87,6 @@ def command_add(bot,user, channel, args):
         if (int(comp[0])%100==0):
 	    bot.say(channel, 'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % int(comp[0]))
 
-	conn.close()
-
     else:
 	bot.say(channel, '%s: what do you want to add?' % getNick(user))
 
@@ -103,8 +98,6 @@ def command_lastquote(bot,user, channel, args):
     comp = cursor.fetchone()
     for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 	bot.say(channel,'%s' % line.strip())
-
-    conn.close()
 
 def command_show(bot,user,channel,args):
     """show especific quote by id"""
@@ -122,8 +115,6 @@ def command_show(bot,user,channel,args):
 
 	else:
 	    bot.say(channel,'%s: %s is cualquiera, not found' % (getNick(user),args))
-
-	conn.close()
 
     else:
 	bot.say(channel, '%s: what id do you wanna see?' % getNick(user))
