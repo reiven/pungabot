@@ -1,0 +1,85 @@
+
+All modules are located on the modules/ directory.
+They should be named "module_<name>.py"
+
+There are two special methods init and finalize, these are called just after
+the module has loaded and just before the bot shuts down (or is rehashed)
+
+Methods:
+========
+
+Globally available:
+
+- getUrl(url)
+
+    Returns a dict of bs, info, content. bs is a BeautifulSoup 
+    object with the page already inserted, info contains the url
+    headers and content contains the page contents.
+    This method should be used when the module intends to do
+    something with the contained HTML/XML, this reduces unnecessary
+    traffic to websites considerably. All results fetched via getUrl
+    are cached internally for a few minutes.
+
+- getNick(user)
+
+    Returns only the nickname of a given user. Manly used to answer
+    correctly to user requests.
+
+- getHostmask(user)
+
+    Returns only the hostmask of a given used. Used for authentication
+
+- twapi()
+
+    The complete tweepy api, already logged to twitter.
+
+Commands via bot.<method>:
+
+- checkValidHostmask(user)
+
+    Check if the user is authenticated (or auto-authenticated) to the bot, 
+    based on his hostmask. 
+    Returns the user level, or False if the user is not authenticated
+
+- say(channel, message)
+
+    Say something to a channel.
+
+- mode(self, chan, set, modes, limit = None, user = None, mask = None)
+
+- join(self, channel, key=None)
+- leave(self, channel, reason=None)
+- kick(self, channel, user, reason=None)
+- topic(self, channel, topic=None)
+- quit(self, message)
+- notice(self, user, message)
+- away(self, message)
+- setNick(self, nickname)
+- me(self, channel, action)
+
+Handlers: 
+=========
+
+Things happening to the bot:
+
+- privmsg(user, channel, message)
+- url(user, channel, urls)
+- joined(channel)
+- left(channel)
+- noticed(user, channel, message)
+- modeChanged(user, channel, set, modes, args)
+- kickedFrom(channel, kicker, message)
+- nickChanged(nick)
+
+Things other people do:
+
+- userJoined(user, channel)
+- userLeft(user, channel)
+- userKicked(kickee, channel, kicker, message)
+- action(user, channel, data)
+- topicUpdated(user, channel, newTopic)
+- userRenamed(oldname, newname)
+
+Misc:
+
+- receivedMOTD(motd)
