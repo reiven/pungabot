@@ -14,7 +14,7 @@ def regexp(expr, item):
     return r.match(item) is not None
 
 def getConn(db):
-    conn = sqlite3.connect(db)
+    conn = sqlite3.connect(db,isolation_level=None)
     conn.create_function("regexp", 2, regexp)
     return conn.cursor()
 
@@ -35,8 +35,7 @@ def command_quote(bot,user, channel, args):
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(args,'utf-8')))
 	comp = cursor.fetchone()
 	if comp:
-	    quoteId = str(comp[0])
-	    for line in getQuote(cursor,channel,quoteId).split('|'):
+	    for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 		bot.say(channel,'%s' % line.strip())
 
 	else:
@@ -46,8 +45,7 @@ def command_quote(bot,user, channel, args):
 	cursor = getConn(str.join('.',(bot.nickname , 'db')))
 	cursor.execute("SELECT quote_id FROM quotes ORDER BY RANDOM() LIMIT 1")
 	comp = cursor.fetchone()
-	quoteId = str(comp[0])
-    	for line in getQuote(cursor,channel,quoteId).split('|'):
+    	for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 	    bot.say(channel,'%s' % line.strip())
 
     conn.close()
@@ -65,8 +63,7 @@ def command_quotes(bot,user, channel, args):
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args),'utf-8')))
 	comp = cursor.fetchone()
 	if comp:
-	    quoteId = str(comp[0])
-	    for line in getQuote(cursor,channel,quoteId).split('|'):
+	    for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 		bot.say(channel,'%s' % line.strip())
 
 	else:
@@ -86,14 +83,12 @@ def command_add(bot,user, channel, args):
         for line in args.split('|'):
                     twapi.update_status(unicode(line.strip(),'utf-8'))
 
-	conn.commit()
         bot.say(channel, 'ok,%s quote added' % getNick(user))
         # check quote number
         cursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
         comp = cursor.fetchone()
-        quoteId = int(comp[0])
-        if (quoteId%100==0):
-	    bot.say(channel, 'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % quoteId)
+        if (int(comp[0])%100==0):
+	    bot.say(channel, 'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % int(comp[0]))
 
 	conn.close()
 
@@ -106,8 +101,7 @@ def command_lastquote(bot,user, channel, args):
     cursor = getConn(str.join('.',(bot.nickname , 'db')))
     cursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
     comp = cursor.fetchone()
-    quoteId = str(comp[0])
-    for line in getQuote(cursor,channel,quoteId).split('|'):
+    for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 	bot.say(channel,'%s' % line.strip())
 
     conn.close()
@@ -123,8 +117,7 @@ def command_show(bot,user,channel,args):
 	cursor.execute("SELECT quote_id FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
 	comp = cursor.fetchone()
 	if comp:
-	    quoteId = str(comp[0])
-	    for line in getQuote(cursor,channel,quoteId).split('|'):
+	    for line in getQuote(cursor,channel,str(comp[0])).split('|'):
 		bot.say(channel,'%s' % line.strip())
 
 	else:
