@@ -6,6 +6,14 @@
 
 from util import pyfiurl
 
+def showTwit(bot,where,twname,status):
+    for s in status:
+	bot.say(where, '%s: %s' % (twname,s.text.encode('utf-8')))
+	urls = pyfiurl.grab(s.text.encode('utf-8'))
+	if urls:
+	    for url in urls:
+		bot._runhandler("url", twname, where, url, ".")
+
 def command_twitter(bot,user,channel,args):
     """show last twitter update from given user"""
 
@@ -16,17 +24,25 @@ def command_twitter(bot,user,channel,args):
 	except: 
 	    return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), args))
 
-	for s in status:
-	    bot.say(channel, '%s: %s' % (args,s.text.encode('utf-8')))
-	    urls = pyfiurl.grab(s.text.encode('utf-8'))
-	    if urls:
-    		for url in urls:
-		    bot._runhandler("url", user, channel, url, args)
+	showTwit(bot,channel,args,status)
 
-        return 
+    elif len(args.split()) == 2:
+	twuser,num = args.split()
+
+	if int(num) <= 5:
+	    try:
+		status = twapi.user_timeline(twuser,count=num,include_rts='true')
+
+	    except: 
+		return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), twuser))
+
+	    showTwit(bot,channel,twuser,status)
+
+	else:
+	    bot.say(channel, 'sorry %s, i can only show five twits' % getNick(user))
 
     else:
-	return bot.say(channel, '%s, which user status you wanna see?' % getNick(user))
+	bot.say(channel, '%s, which user status you wanna see?' % getNick(user))
 
 def command_twitterwho(bot,user,channel,args):
     """show twitter information about a given user"""
