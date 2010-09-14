@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pytz
 #
 # we can use any method inside tweepy from modules, thanks to global twapi
 #
@@ -8,7 +9,8 @@ from util import pyfiurl
 
 def showTwit(bot,where,twname,status):
     for s in status:
-	bot.say(where, '%s: %s' % (twname,s.text.encode('utf-8')))
+	bsas = pytz.timezone('America/Argentina/Buenos_Aires')
+	bot.say(where, '%s: %s (%s)' % (twname,s.text.encode('utf-8'),s.created_at.replace(tzinfo=pytz.utc).astimezone(bsas).strftime("%H:%M - %d.%m.%Y")))
 	urls = pyfiurl.grab(s.text.encode('utf-8'))
 	if urls:
 	    for url in urls:
