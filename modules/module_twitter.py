@@ -7,14 +7,20 @@ import pytz
 
 from util import pyfiurl
 
-def showTwit(bot,where,twname,status):
-    for s in status:
+def showTwit(bot,where,twquery):
+    for q in twquery:
 	bsas = pytz.timezone('America/Argentina/Buenos_Aires')
-	bot.say(where, '%s: %s (%s)' % (twname,s.text.encode('utf-8'),s.created_at.replace(tzinfo=pytz.utc).astimezone(bsas).strftime("%H:%M - %d.%m.%Y")))
-	urls = pyfiurl.grab(s.text.encode('utf-8'))
+	if type(q).__name__ == 'Status':
+	    twuser = q.user.screen_name.encode('utf-8')
+
+	else:
+	    twuser = q.from_user.encode('utf-8')
+
+	bot.say(where, '@%s: %s (%s)' % (twuser ,q.text.encode('utf-8'),q.created_at.replace(tzinfo=pytz.utc).astimezone(bsas).strftime("%H:%M - %d.%m.%Y")))
+	urls = pyfiurl.grab(q.text.encode('utf-8'))
 	if urls:
 	    for url in urls:
-		bot._runhandler("url", twname, where, url, ".")
+		bot._runhandler("url", twuser , where, url, ".")
 
 def command_twitter(bot,user,channel,args):
     """show last twitter update from given user"""
@@ -26,7 +32,7 @@ def command_twitter(bot,user,channel,args):
 	except: 
 	    return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), args))
 
-	showTwit(bot,channel,args,status)
+	showTwit(bot,channel,status)
 
     elif len(args.split()) == 2:
 	twuser,num = args.split()
@@ -38,7 +44,7 @@ def command_twitter(bot,user,channel,args):
 	    except: 
 		return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), twuser))
 
-	    showTwit(bot,channel,twuser,status)
+	    showTwit(bot,channel,status)
 
 	else:
 	    bot.say(channel, 'sorry %s, i can only show five twits' % getNick(user))
@@ -65,6 +71,21 @@ def command_twitterwho(bot,user,channel,args):
     else:
 	return bot.say(channel, 'usage error, see !help twitterwho')
 
+def command_twsearch(bot,user,channel,args):
+    """search in twitter. returns first five twits"""
+
+    if len(args.split()) == 1:
+	try:
+	    status = twapi.search(args,rpp='5',page='1')
+
+	except: 
+	    return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), twuser))
+
+	showTwit(bot,channel,status)
+
+    else:
+	return bot.say(user,'%s, what do you wanna search in twitter?' % getNick(user))
+
 def privcommand_twupdate(bot,user,channel,args):
     """update bot status on twitter"""
 
@@ -76,4 +97,3 @@ def privcommand_twupdate(bot,user,channel,args):
 
 	else:
 	    return bot.say(user,'%s, what do you wanna post to tw?' % getNick(user))
-
