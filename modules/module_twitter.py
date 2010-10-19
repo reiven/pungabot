@@ -37,7 +37,7 @@ def command_twitter(bot,user,channel,args):
     elif len(args.split()) == 2:
 	twuser,num = args.split()
 
-	if int(num) <= 5:
+	if 0 < int(num) <= 5:
 	    try:
 		status = twapi.user_timeline(twuser,count=num,include_rts='true')
 
