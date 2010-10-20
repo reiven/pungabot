@@ -37,9 +37,14 @@ def command_twitter(bot,user,channel,args):
     elif len(args.split()) == 2:
 	twuser,num = args.split()
 
-	if 0 < int(num) <= 5:
+	try:
+	    num = int(num)
+	except (TypeError, ValueError):
+	    return bot.say(channel, '%s: hax0r' % getNick(user))
+
+	if 0 < num <= 5:
 	    try:
-		status = twapi.user_timeline(twuser,count=int(num),include_rts='true')
+		status = twapi.user_timeline(twuser,count=num,include_rts='true')
 
 	    except: 
 		return bot.say(channel, '%s: sorry, but i cant do that' % getNick(user))
