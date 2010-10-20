@@ -39,10 +39,10 @@ def command_twitter(bot,user,channel,args):
 
 	if 0 < int(num) <= 5:
 	    try:
-		status = twapi.user_timeline(twuser,count=num,include_rts='true')
+		status = twapi.user_timeline(twuser,count=int(num),include_rts='true')
 
 	    except: 
-		return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), twuser))
+		return bot.say(channel, '%s: sorry, but i cant do that' % getNick(user))
 
 	    showTwit(bot,channel,status)
 
