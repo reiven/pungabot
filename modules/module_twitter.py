@@ -23,7 +23,7 @@ def showTwit(bot,where,twquery):
 		bot._runhandler("url", twuser , where, url, ".")
 
 def command_twitter(bot,user,channel,args):
-    """show last twitter update from given user"""
+    """show twitter updates from given user. Usage !twitter [user] (5)"""
 
     if len(args.split()) == 1:
 	try:
