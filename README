@@ -20,7 +20,10 @@ twisted matrix (http://twistedmatrix.com)
 pyyaml (http://pyyaml.org/wiki/PyYAML)
 pystemmer (http://pypi.python.org/pypi/PyStemmer/1.1.0)
 tweepy (http://github.com/joshthecoder/tweepy)
-
+BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
+pysqlite2 (http://code.google.com/p/pysqlite/)
+feedparser (http://www.feedparser.org/)
+pytz (http://pypi.python.org/pypi/pytz)
 
 Usage
 ===========
