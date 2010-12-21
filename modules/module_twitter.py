@@ -67,8 +67,11 @@ def command_twitterwho(bot,user,channel,args):
         except:
             return bot.say(channel, '%s: %s is not a valid twitter user' % (getNick(user), args))
 
-	if who.name and who.url:
-	    bot.say(channel, '%s: %s (%s)' % (args,who.name.encode('utf-8'),who.url.encode('utf-8')))
+	if who.name and who.url and who.description:
+	    bot.say(channel, '%s: %s - %s (%s)' % (args,who.name.encode('utf-8'),who.description.encode('utf-8'),who.url.encode('utf-8')))
+
+	elif who.name and who.description:
+	    bot.say(channel, '%s: %s - %s' % (args,who.name.encode('utf-8'),who.description.encode('utf-8')))
 
 	else:
 	    bot.say(channel, '%s: %s' % (args,who.name.encode('utf-8')))
