@@ -251,7 +251,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         reactor.callLater(delay, self.repeatingPing, delay)
         self.ping(self.nickname)
 
-    def say(self, channel, message, length = None):
+    def say(self, channel, message, length = "510"):
         """Override default say to make replying to private messages easier"""
         # wrap long text into suitable fragments
         msg = self.tw.wrap(message)
@@ -260,7 +260,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         for m in msg:
             if cont: m = "..."+m
-            self.msg(channel, m, length)
+            self.msg(channel, m, int(length))
             cont = True
 
         return ('botcore.say', channel, message)
