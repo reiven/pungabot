@@ -104,7 +104,7 @@ def _title(bot, channel, title, smart=False, redundant=False):
     log.info(title)
 
     if not info:
-        return bot.say(channel, "%s '%s'%s" % (prefix, title, suffix))
+        return bot.say(channel, "%s '%s'%s" % (prefix, title.encode('utf-8'), suffix))
     else:
-        return bot.say(channel, "%s '%s' %s" % (prefix, title, info))
+        return bot.say(channel, "%s '%s' %s" % (prefix, title.encode('utf-8'), info))
 
