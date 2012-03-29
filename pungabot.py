@@ -43,8 +43,9 @@ import socket
 socket.setdefaulttimeout(20)
 
 # twitter api keys
-consumer_key="tsh79PNCdSogwg9Dx3VNg"
-consumer_secret="Kg8H9ninvOkQfsiIyw03r2QsUGDOXqWBjWB1Nzt9lA"
+consumer_key = "tsh79PNCdSogwg9Dx3VNg"
+consumer_secret = "Kg8H9ninvOkQfsiIyw03r2QsUGDOXqWBjWB1Nzt9lA"
+
 
 class URLCacheItem(object):
     """URL cache item object, fetches data only when needed"""
@@ -81,7 +82,7 @@ class URLCacheItem(object):
 
         @return None if the server doesn't return a content-length header"""
         if self.getHeaders().has_key('content-length'):
-            length = int(self.getHeaders()['content-length'])/1024
+            length = int(self.getHeaders()['content-length']) / 1024
             return length
         else:
             return None
@@ -149,20 +150,22 @@ class URLCacheItem(object):
         self._checkstatus()
         return self.bs
 
+
 class BotURLOpener(urllib.FancyURLopener):
     """URL opener that fakes itself as Firefox and ignores all basic auth prompts"""
 
     def __init__(self, *args):
         # Firefox 1.0PR on w2k
-        self.version = "Mozilla/5.0 (Windows; U; Windows NT 5.0; rv:1.7.3) pungaBot"
+        self.version = "Mozilla/5.0 (Windows; U; Windows NT 5.0; rv:1.7.3)"
         urllib.FancyURLopener.__init__(self, *args)
 
     def prompt_user_passwd(self, host, realm):
         log.info("PASSWORD PROMPT:", host, realm)
         return ('', '')
 
+
 class Network:
-    def __init__(self, root, alias, address, nickname, channels = None):
+    def __init__(self, root, alias, address, nickname, channels=None):
         self.alias = alias                         # network name
         self.address = address                     # server address
         self.nickname = nickname                   # nick to use
@@ -176,12 +179,14 @@ class Network:
     def __repr__(self):
         return 'Network(%r, %r)' % (self.alias, self.address)
 
+
 class InstantDisconnectProtocol(protocol.Protocol):
     def connectionMade(self):
         self.transport.loseConnection()
 
+
 class ThrottledClientFactory(protocol.ClientFactory):
-    """Client factory that inserts a slight delay to connecting and reconnecting"""
+    """Client that inserts a slight delay to connecting and reconnecting"""
 
     lostDelay = 10
     failedDelay = 60
@@ -195,6 +200,7 @@ class ThrottledClientFactory(protocol.ClientFactory):
         #print connector
         log.info("connection failed (%s): reconnecting in %d seconds" % (reason, self.failedDelay))
         reactor.callLater(self.failedDelay, connector.connect)
+
 
 class pungaBotFactory(ThrottledClientFactory):
     """python  bot factory"""
@@ -221,18 +227,18 @@ class pungaBotFactory(ThrottledClientFactory):
         if not os.path.exists("data"):
             os.mkdir("data")
 
-	# connect to twitter
-	if self.config['twitter']:
-	    key = config['twitter'][0]
-	    secret = config['twitter'][1]
-	    try:
-		auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-        	auth.set_access_token(key, secret)
-		self.twapi = tweepy.API(auth)
-		log.info('connection to TWITTER ok')
+    # connect to twitter
+        if self.config['twitter']:
+            key = config['twitter'][0]
+            secret = config['twitter'][1]
+            try:
+                auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+                auth.set_access_token(key, secret)
+                self.twapi = tweepy.API(auth)
+                log.info('connection to TWITTER ok')
 
-	    except:
-		log.info('could not connect to TWITTER')
+            except:
+                log.info('could not connect to TWITTER')
 
     def startFactory(self):
         self.allBots = {}
@@ -249,7 +255,7 @@ class pungaBotFactory(ThrottledClientFactory):
         del self.allBots
         #self.data.close()
 
-        ThrottledClientFactory.stopFactory(self)        
+        ThrottledClientFactory.stopFactory(self)
         log.info("factory stopped")
         reactor.stop()
 
@@ -274,7 +280,7 @@ class pungaBotFactory(ThrottledClientFactory):
         p.factory = self
         return p
 
-    def createNetwork(self, address, alias, nickname, channels = None):
+    def createNetwork(self, address, alias, nickname, channels=None):
         self.setNetwork(Network("data", alias, address, nickname, channels))
 
     def setNetwork(self, net):
@@ -309,7 +315,6 @@ class pungaBotFactory(ThrottledClientFactory):
                     log.info("finalize - %s" % module)
                     self.ns[module][0]['finalize']()
 
-
     def _loadmodules(self):
         """Load all modules"""
         self._finalize_modules()
@@ -339,8 +344,8 @@ class pungaBotFactory(ThrottledClientFactory):
 
         g['getUrl'] = self.getUrl
         g['getNick'] = self.getNick
-	g['getHostmask'] = self.getHostmask
-	g['twapi'] = self.twapi
+        g['getHostmask'] = self.getHostmask
+        g['twapi'] = self.twapi
         return g
 
     def getUrl(self, url, nocache=False):
@@ -374,6 +379,7 @@ class pungaBotFactory(ThrottledClientFactory):
 
         @return: nick"""
         return user.split('!', 1)[1]
+
 
 def create_example_conf():
     """Create an example configuration file"""
@@ -436,8 +442,8 @@ if __name__ == '__main__':
     factory = pungaBotFactory(config)
 
     # write pidfile, for eggchk
-    pidfile = str.join('.',(config['nick'] , 'pid'))
-    file = open(pidfile,'w')
+    pidfile = str.join('.', (config['nick'], 'pid'))
+    file = open(pidfile, 'w')
     file.write('%s\n' % os.getpid())
     file.close()
 
