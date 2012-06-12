@@ -13,13 +13,14 @@ def command_stock(bot, user, channel, args):
     doc = tree.getroot()
     finance = doc.find('finance')
     if finance.find('exchange').attrib.values()[0] != "UNKNOWN EXCHANGE":
-        bot.say(channel, "(%s:%s) %s : %s %s (%s %%)" %
-            (finance.find('exchange').attrib.values()[0],
+        bot.say(channel, "(%s:%s) %s : %s %s (%s %%)" % (
+            finance.find('exchange').attrib.values()[0],
             finance.find('symbol').attrib.values()[0],
             finance.find('company').attrib.values()[0],
             finance.find('currency').attrib.values()[0],
             finance.find('last').attrib.values()[0],
-            finance.find('perc_change').attrib.values()[0]))
+            finance.find('perc_change').attrib.values()[0])
+            )
 
     else:
         bot.say(channel, "sorry, that is not a valid company symbol")

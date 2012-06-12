@@ -8,16 +8,12 @@
 
 # twisted imports
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol, defer, threads
+from twisted.internet import reactor, threads
 from twisted.python import rebuild
 
 from types import FunctionType
 
-import os, sys
-import string
-import urllib
 import logging
-import re
 import fnmatch
 from util import pyfiurl
 from pysqlite2 import dbapi2 as sqlite3
@@ -29,16 +25,19 @@ __pychecker__ = 'unusednames=i, classattr'
 
 log = logging.getLogger("bot")
 
+
 class CoreCommands(object):
 
     def privcommand_ping(self, user, channel, args):
-        self.say(channel, "%s: My current ping is %.0fms" % (self.factory.getNick(user), self.pingAve*100.0))
+        self.say(channel, "%s: My current ping is %.0fms" % (
+            self.factory.getNick(user), self.pingAve * 100.0)
+            )
 
     def privcommand_rehash(self, user, channel, args):
         """Reload modules. Usage: rehash [debug]"""
 
-	lvl = self.checkValidHostmask(user)
-	if lvl and lvl > 4:
+        lvl = self.checkValidHostmask(user)
+        if lvl and lvl > 4:
             try:
                 # rebuild core & update
                 log.info("rebuilding %r" % self)
@@ -48,18 +47,22 @@ class CoreCommands(object):
 
             except Exception, e:
                 self.say(channel, "Rehash error: %s" % e)
-                log.error("Rehash error: "+e)
+                log.error("Rehash error: " + e)
             else:
                 self.say(channel, "Rehash OK")
                 log.info("Rehash OK")
-	else:
-	    log.debug("%s tried priveleged !rehash command" % self.factory.getNick(user))
+        else:
+            log.debug("%s tried priveleged !rehash command" %
+                self.factory.getNick(user)
+                )
 
     def privcommand_join(self, user, channel, args):
-        """Usage: join <channel>[@network] [password] - Join the specified channel"""
+        """
+        Usage: join <channel>[@network] [password] - Join the specified channel
+        """
 
-	lvl = self.checkValidHostmask(user)
-	if not lvl or lvl < 4:
+        lvl = self.checkValidHostmask(user)
+        if not lvl or lvl < 4:
             return
 
         password = None
@@ -72,18 +75,24 @@ class CoreCommands(object):
         # see if the user specified a network
         try:
             newchannel, network = args.split('@', 1)
+
         except ValueError, e:
             newchannel, network = args, self.network.alias
+
         try:
             bot = self.factory.allBots[network]
+
         except KeyError:
             self.say(channel, "I am not on that network.")
+
         else:
             log.debug("Attempting to join channel %s", newchannel)
             if newchannel in bot.network.channels:
-                self.say(channel, "I am already in %s on %s." % (newchannel, network))
+                self.say(channel, "I am already in %s on %s." % (
+                    newchannel, network
+                    ))
                 log.debug("Already on channel %s" % channel)
-                log.debug("Channels I'm on this network: %s" % bot.network.channels)
+                log.debug("Chans I'm on this netw: %s" % bot.network.channels)
             else:
                 if password:
                     bot.join(newchannel, key=password)
@@ -100,8 +109,8 @@ class CoreCommands(object):
     def privcommand_part(self, user, channel, args):
         """Usage: part <channel>[@network] - Leave the specified channel"""
 
-	lvl = self.checkValidHostmask(user)
-	if not lvl or lvl < 4:
+        lvl = self.checkValidHostmask(user)
+        if not lvl or lvl < 4:
             return
 
         # part what and where?
@@ -117,7 +126,9 @@ class CoreCommands(object):
             self.say(channel, "I am not on that network.")
         else:
             if newchannel not in bot.network.channels:
-                self.say(channel, "I am not in %s on %s." % (newchannel, network))
+                self.say(channel, "I am not in %s on %s." % (
+                    newchannel, network
+                    ))
                 self.say(channel, "I am on %s" % bot.network.channels)
             else:
                 bot.network.channels.remove(newchannel)
@@ -126,8 +137,8 @@ class CoreCommands(object):
     def privcommand_quit(self, user, channel, args):
         """Usage: logoff - Leave this network"""
 
-	lvl = self.checkValidHostmask(user)
-	if not lvl or lvl < 4:
+        lvl = self.checkValidHostmask(user)
+        if not lvl or lvl < 4:
             return
 
         self.quit("Working as programmed")
@@ -135,19 +146,21 @@ class CoreCommands(object):
 
     def privcommand_channels(self, user, channel, args):
         """Usage: channels <network> - List channels the bot is on"""
-        if not args: 
+        if not args:
             self.say(channel, "Please specify a network")
             return
         bot = self.factory.allBots[args]
         self.say(channel, "I am on %s" % self.network.channels)
 
     def command_help(self, user, channel, cmnd):
-        """Get help on all commands or a specific one. Usage: help [<command>]"""
+        """
+        Get help on all commands or a specific one. Usage: help [<command>]
+        """
 
         commands = []
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
-            commands += [(c.replace("command_", ""),ref) for c,ref in mylocals.items() if c.startswith("command_%s" % cmnd)]
+            commands += [(c.replace("command_", ""), ref) for c, ref in mylocals.items() if c.startswith("command_%s" % cmnd)]
 
         # help for a specific command
         if len(cmnd) > 0:
@@ -163,12 +176,14 @@ class CoreCommands(object):
             self.say(channel, "Available commands: %s" % commandlist)
 
     def privcommand_help(self, user, channel, cmnd):
-        """Get help on all commands or a specific one. Usage: help [<command>]"""
+        """
+        Get help on all commands or a specific one. Usage: help [<command>]
+        """
 
         commands = []
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
-            commands += [(c.replace("privcommand_", ""),ref) for c,ref in mylocals.items() if c.startswith("privcommand_%s" % cmnd)]
+            commands += [(c.replace("privcommand_", ""), ref) for c, ref in mylocals.items() if c.startswith("privcommand_%s" % cmnd)]
 
         # help for a specific command
         if len(cmnd) > 0:
@@ -201,7 +216,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
     def __init__(self, network):
         self.network = network
         self.nickname = self.network.nickname
-	self.authenticated = {}
+        self.authenticated = {}
 
         # text wrapper to clip overly long answers
         self.tw = textwrap.TextWrapper(width=400, break_long_words=True)
@@ -211,10 +226,10 @@ class pungaBot(irc.IRCClient, CoreCommands):
     def __repr__(self):
         return 'pungaBot(%r, %r)' % (self.nickname, self.network.address)
 
-    ###### CORE 
+    ###### CORE
 
     def printResult(self, msg, info):
-        # Don't print results if there is nothing to say (usually non-operation on module)
+        # Don't print results if there is nothing to say
         if msg:
             log.debug("Result %s %s" % (msg, info))
 
@@ -233,7 +248,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
 
-	self.reloadUsers()
+        self.reloadUsers()
 
         for chan in self.network.channels:
             # defined as a tuple, channel has a key
@@ -242,7 +257,10 @@ class pungaBot(irc.IRCClient, CoreCommands):
             else:
                 self.join(chan)
 
-        log.info("joined %d channel(s): %s" % (len(self.network.channels), ", ".join(self.network.channels)))
+        log.info("joined %d channel(s): %s" % (
+            len(self.network.channels),
+            ", ".join(self.network.channels))
+            )
 
     def pong(self, user, secs):
         self.pingAve = ((self.pingAve * 5) + secs) / 6.0
@@ -251,7 +269,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         reactor.callLater(delay, self.repeatingPing, delay)
         self.ping(self.nickname)
 
-    def say(self, channel, message, length = "510"):
+    def say(self, channel, message, length="510"):
         """Override default say to make replying to private messages easier"""
         # wrap long text into suitable fragments
         msg = self.tw.wrap(message)
@@ -259,7 +277,8 @@ class pungaBot(irc.IRCClient, CoreCommands):
         cont = False
 
         for m in msg:
-            if cont: m = "..."+m
+            if cont:
+                m = "..." + m
             self.msg(channel, m, int(length))
             cont = True
 
@@ -269,29 +288,32 @@ class pungaBot(irc.IRCClient, CoreCommands):
         botId = "%s@%s" % (self.nickname, self.network.alias)
         log.info("%s: %s", botId, message)
 
-    def checkValidHostmask(self,user):
-	""" based in the user hostmask, check if he/it do auth. return user level"""
+    def checkValidHostmask(self, user):
+        """
+        Based in the user hostmask, check if he/it do auth.
+        Return user level
+        """
 
-	for pattern, level in self.authenticated.items():
-	    if fnmatch.fnmatch(self.factory.getHostmask(user),pattern):
-		log.debug("pattern matched = %s" % pattern)
-		return level
+        for pattern, level in self.authenticated.items():
+            if fnmatch.fnmatch(self.factory.getHostmask(user), pattern):
+                log.debug("pattern matched = %s" % pattern)
+                return level
 
-	return False
+        return False
 
     def reloadUsers(self):
-	""" (re)load users from database. used for authentication  """
+        """ (re)load users from database. used for authentication  """
 
-	self.authenticated = {}
-	# first we should get all the hostmask for the admins/bots
-        conn = sqlite3.connect(str.join('.',(self.nickname , 'db')))
+        self.authenticated = {}
+        # first we should get all the hostmask for the admins/bots
+        conn = sqlite3.connect(str.join('.', (self.nickname, 'db')))
         c = conn.cursor()
-	c.execute ("SELECT hostmask,level,name FROM users ORDER BY level")
-	for mask in c:
-	    if mask[0] != None:
-		log.info("loaded user: %s(%s)" % (mask[2],mask[0]))
-		self.authenticated[mask[0]] = mask[1]
-	conn.close()
+        c.execute("SELECT hostmask,level,name FROM users ORDER BY level")
+        for mask in c:
+            if mask[0] != None:
+                log.info("loaded user: %s(%s)" % (mask[2], mask[0]))
+                self.authenticated[mask[0]] = mask[1]
+        conn.close()
 
     ###### COMMUNICATION
 
@@ -304,28 +326,25 @@ class pungaBot(irc.IRCClient, CoreCommands):
         """
 
         channel = channel.lower()
-        lmsg = msg.lower()
         lnick = self.nickname.lower()
-        nickl = len(lnick)
 
         if channel == lnick:
-	    # bot private commands (privcommand)
-    	    if msg.startswith(self.factory.config['commandchar']):
-        	cmnd = msg[len(self.factory.config['commandchar']):]
-        	self._privcommand(user, self.factory.getNick(user), cmnd)
+            # bot private commands (privcommand)
+            if msg.startswith(self.factory.config['commandchar']):
+                cmnd = msg[len(self.factory.config['commandchar']):]
+                self._privcommand(user, self.factory.getNick(user), cmnd)
 
         else:
+            # channel public commands (command)
+            if msg.startswith(self.factory.config['commandchar']):
+                cmnd = msg[len(self.factory.config['commandchar']):]
+                self._command(user, channel, cmnd)
 
-    	    # channel public commands (command)
-	    if msg.startswith(self.factory.config['commandchar']):
-        	cmnd = msg[len(self.factory.config['commandchar']):]
-        	self._command(user, channel, cmnd)
-
-    	    # run URL handlers
-	    urls = pyfiurl.grab(msg)
-	    if urls:
-        	for url in urls:
-            	    self._runhandler("url", user, channel, url, msg)
+        # run URL handlers
+        urls = pyfiurl.grab(msg)
+        if urls:
+            for url in urls:
+                self._runhandler("url", user, channel, url, msg)
 
         # run privmsg handlers
         self._runhandler("privmsg", user, channel, msg)
@@ -337,7 +356,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            handlers = [(h,ref) for h,ref in mylocals.items() if h == handler and type(ref) == FunctionType]
+            handlers = [(h, ref) for h, ref in mylocals.items() if h == handler and type(ref) == FunctionType]
 
             for hname, func in handlers:
                 # defer each handler to a separate thread, assign callbacks to see when they end
@@ -353,7 +372,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         The command methods are formatted as "command_<commandname>"
         """
-        # split arguments from the command part        
+        # split arguments from the command part
         try:
             cmnd, args = cmnd.split(" ", 1)
         except ValueError:
@@ -362,7 +381,9 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "command_%s" % cmnd, None)
         if method is not None:
-            log.info("internal command %s called by %s on %s" % (cmnd, user, channel))
+            log.info("internal command %s called by %s on %s" % (
+                cmnd, user, channel
+                ))
             method(user, channel, args)
             return
 
@@ -370,10 +391,12 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            commands = [(c,ref) for c,ref in mylocals.items() if c == "command_%s" % cmnd]
+            commands = [(c, ref) for c, ref in mylocals.items() if c == "command_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s on %s" % (cname, user, channel))
+                log.info("module %s called by %s on %s" % (
+                    cname, user, channel
+                    ))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "command %s completed" % cname)
@@ -386,7 +409,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         The command methods are formatted as "privcommand_<commandname>"
         """
-        # split arguments from the command part        
+        # split arguments from the command part
         try:
             cmnd, args = cmnd.split(" ", 1)
         except ValueError:
@@ -395,17 +418,21 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "privcommand_%s" % cmnd, None)
         if method is not None:
-            log.info("internal privcommand %s called by %s on %s" % (cmnd, user, channel))
+            log.info("internal privcommand %s called by %s on %s" % (
+                cmnd, user, channel
+                ))
             method(user, channel, args)
             return
 
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            commands = [(c,ref) for c,ref in mylocals.items() if c == "privcommand_%s" % cmnd]
+            commands = [(c, ref) for c, ref in mylocals.items() if c == "privcommand_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s on %s" % (cname, user, channel))
+                log.info("module %s called by %s on %s" % (
+                    cname, user, channel
+                    ))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "privcommand %s completed" % cname)
@@ -440,7 +467,8 @@ class pungaBot(irc.IRCClient, CoreCommands):
             self.left(channel)
         else:
             # some clients don't send a part message at all, compensate
-            if len(params) == 1: params.append("")
+            if len(params) == 1:
+                params.append("")
             self.userLeft(prefix, channel, params[1])
 
     def irc_QUIT(self, prefix, params):
@@ -450,9 +478,9 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         nick = self.factory.getNick(prefix)
         if nick == self.nickname:
-            self.left(channel)
+            self.left(params[0])
         else:
-    	    self.userLeft(prefix, None, params[0])
+            self.userLeft(prefix, None, params[0])
 
     ###### HANDLERS ######
 
@@ -501,7 +529,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         self._runhandler("action", user, channel, data)
 
     def topicUpdated(self, user, channel, topic):
-        """Save topic to maindb when it changes"""        
+        """Save topic to maindb when it changes"""
         self._runhandler("topicUpdated", user, channel, topic)
 
     def userRenamed(self, oldnick, newnick):
@@ -515,13 +543,15 @@ class pungaBot(irc.IRCClient, CoreCommands):
     ## SERVER INFORMATION
 
     def created(self, when):
-        log.info(self.network.alias+" CREATED: "+when)
+        log.info(self.network.alias + " CREATED: " + when)
 
     def yourHost(self, info):
-        log.info(self.network.alias+" YOURHOST: "+info)
+        log.info(self.network.alias + " YOURHOST: " + info)
 
     def myInfo(self, servername, version, umodes, cmodes):
-        log.info(self.network.alias+" MYINFO: %s %s %s %s" % (servername, version, umodes, cmodes))
+        log.info(self.network.alias + " MYINFO: %s %s %s %s" % (
+            servername, version, umodes, cmodes
+            ))
 
     def luserMe(self, info):
-        log.info(self.network.alias+" LUSERME: "+info)
+        log.info(self.network.alias + " LUSERME: " + info)
