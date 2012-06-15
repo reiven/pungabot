@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pysqlite2 import dbapi2 as sqlite3
 import re
 import string
 import Stemmer
@@ -13,12 +12,6 @@ def sanitize(buf):
 def regexp(expr, item):
     r = re.compile(expr, re.MULTILINE | re.IGNORECASE)
     return r.match(item) is not None
-
-
-def getConn(db):
-    conn = sqlite3.connect(db, isolation_level=None)
-    conn.create_function("regexp", 2, regexp)
-    return conn.cursor()
 
 
 def getQuote(cursor, channel, quoteId):
@@ -35,21 +28,19 @@ def command_quote(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
-        cursor = getConn(str.join('.', (bot.nickname, 'db')))
-        cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(args, 'utf-8')))
-        comp = cursor.fetchone()
+        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(args, 'utf-8')))
+        comp = dbCursor.fetchone()
         if comp:
-            for line in getQuote(cursor, channel, str(comp[0])).split('|'):
+            for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
                 bot.say(channel, '%s' % line.strip())
 
         else:
             bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
     else:
-        cursor = getConn(str.join('.', (bot.nickname, 'db')))
-        cursor.execute("SELECT quote_id FROM quotes ORDER BY RANDOM() LIMIT 1")
-        comp = cursor.fetchone()
-        for line in getQuote(cursor, channel, str(comp[0])).split('|'):
+        dbCursor.execute("SELECT quote_id FROM quotes ORDER BY RANDOM() LIMIT 1")
+        comp = dbCursor.fetchone()
+        for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
             bot.say(channel, '%s' % line.strip())
 
 
@@ -62,11 +53,10 @@ def command_quotes(bot, user, channel, args):
             return bot.say(channel, 'hax0r')
 
         stemmer = Stemmer.Stemmer('spanish')
-        cursor = getConn(str.join('.', (bot.nickname, 'db')))
-        cursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args), 'utf-8')))
-        comp = cursor.fetchone()
+        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args), 'utf-8')))
+        comp = dbCursor.fetchone()
         if comp:
-            for line in getQuote(cursor, channel, str(comp[0])).split('|'):
+            for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
                 bot.say(channel, '%s' % line.strip())
 
         else:
@@ -80,15 +70,20 @@ def command_add(bot, user, channel, args):
     """add new quote"""
 
     if args:
-        cursor = getConn(str.join('.', (bot.nickname, 'db')))
-        cursor.execute("INSERT INTO quotes VALUES (NULL,?,'0',?)",(unicode(args, 'utf-8'), getNick(user)))
+        dbCursor.execute("INSERT INTO quotes VALUES (NULL,?,'0',?)",(unicode(args, 'utf-8'), getNick(user)))
+
         for line in args.split('|'):
-                    twapi.update_status(unicode(line.strip(),'utf-8'))
+            if len(line) < 139:
+                twapi.update_status(unicode(line.strip(),'utf-8'))
+
+            else:
+                bot.say(channel, '%s,uhm i failed to update twitter in some way' % getNick(user))
+
 
         bot.say(channel, 'ok,%s quote added' % getNick(user))
         # check quote number
-        cursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
-        comp = cursor.fetchone()
+        dbCursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
+        comp = dbCursor.fetchone()
         if (int(comp[0]) % 100 == 0):
             bot.say(channel, 'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % int(comp[0]))
 
@@ -99,10 +94,9 @@ def command_add(bot, user, channel, args):
 def command_lastquote(bot, user, channel, args):
     """show last added quote"""
 
-    cursor = getConn(str.join('.', (bot.nickname, 'db')))
-    cursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
-    comp = cursor.fetchone()
-    for line in getQuote(cursor, channel, str(comp[0])).split('|'):
+    dbCursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
+    comp = dbCursor.fetchone()
+    for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
         bot.say(channel, '%s' % line.strip())
 
 
@@ -113,11 +107,10 @@ def command_show(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
-        cursor = getConn(str.join('.', (bot.nickname, 'db')))
-        cursor.execute("SELECT quote_id FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
-        comp = cursor.fetchone()
+        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
+        comp = dbCursor.fetchone()
         if comp:
-            for line in getQuote(cursor, channel, str(comp[0])).split('|'):
+            for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
                 bot.say(channel, '%s' % line.strip())
 
         else:

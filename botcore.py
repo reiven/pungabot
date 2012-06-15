@@ -8,15 +8,17 @@
 
 # twisted imports
 from twisted.words.protocols import irc
-from twisted.internet import reactor, threads
+from twisted.internet import reactor, protocol, defer, threads
 from twisted.python import rebuild
 
 from types import FunctionType
 
+import os, sys
+import string
+import urllib
 import logging
 import fnmatch
 from util import pyfiurl
-from pysqlite2 import dbapi2 as sqlite3
 
 # line splitting
 import textwrap
@@ -232,9 +234,11 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # Don't print results if there is nothing to say
         if msg:
             log.debug("Result %s %s" % (msg, info))
+            pass
 
     def printError(self, msg, info):
         log.error("ERROR %s %s" % (msg, info))
+        pass
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -243,7 +247,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
-        log.info("connection lost:", reason)
+        log.info("connection lost: %s" % reason)
 
     def signedOn(self):
         """Called when bot has succesfully signed on to server."""
@@ -257,10 +261,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
             else:
                 self.join(chan)
 
-        log.info("joined %d channel(s): %s" % (
-            len(self.network.channels),
-            ", ".join(self.network.channels))
-            )
+        log.info("joined %d channel(s): %s" % (len(self.network.channels),", ".join(self.network.channels)))
 
     def pong(self, user, secs):
         self.pingAve = ((self.pingAve * 5) + secs) / 6.0
@@ -306,14 +307,13 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
         self.authenticated = {}
         # first we should get all the hostmask for the admins/bots
-        conn = sqlite3.connect(str.join('.', (self.nickname, 'db')))
-        c = conn.cursor()
-        c.execute("SELECT hostmask,level,name FROM users ORDER BY level")
+        c = self.factory.dbCursor.execute(
+            "SELECT hostmask,level,name FROM users ORDER BY level"
+            )
         for mask in c:
             if mask[0] != None:
-                log.info("loaded user: %s(%s)" % (mask[2], mask[0]))
+                log.debug("loaded user: %s(%s)" % (mask[2], mask[0]))
                 self.authenticated[mask[0]] = mask[1]
-        conn.close()
 
     ###### COMMUNICATION
 
@@ -381,9 +381,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "command_%s" % cmnd, None)
         if method is not None:
-            log.info("internal command %s called by %s on %s" % (
-                cmnd, user, channel
-                ))
+            log.info("internal command %s called by %s on %s" % (cmnd, user, channel))
             method(user, channel, args)
             return
 
@@ -394,9 +392,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
             commands = [(c, ref) for c, ref in mylocals.items() if c == "command_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s on %s" % (
-                    cname, user, channel
-                    ))
+#                log.info("module %s called by %s on %s" % ( cname, user, channel ))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "command %s completed" % cname)
@@ -418,9 +414,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "privcommand_%s" % cmnd, None)
         if method is not None:
-            log.info("internal privcommand %s called by %s on %s" % (
-                cmnd, user, channel
-                ))
+            log.info("internal privcommand %s called by %s on %s" % (cmnd, user, channel))
             method(user, channel, args)
             return
 
@@ -430,9 +424,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
             commands = [(c, ref) for c, ref in mylocals.items() if c == "privcommand_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s on %s" % (
-                    cname, user, channel
-                    ))
+                log.info("module %s called by %s on %s" % ( cname, user, channel))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "privcommand %s completed" % cname)
@@ -544,14 +536,15 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     def created(self, when):
         log.info(self.network.alias + " CREATED: " + when)
+        pass
 
     def yourHost(self, info):
         log.info(self.network.alias + " YOURHOST: " + info)
 
     def myInfo(self, servername, version, umodes, cmodes):
-        log.info(self.network.alias + " MYINFO: %s %s %s %s" % (
-            servername, version, umodes, cmodes
-            ))
+        log.info(self.network.alias + " MYINFO: %s %s %s %s" % (servername, version, umodes, cmodes))
+        pass
 
     def luserMe(self, info):
         log.info(self.network.alias + " LUSERME: " + info)
+        pass

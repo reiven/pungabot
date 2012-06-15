@@ -20,15 +20,14 @@ import HTMLParser
 import logging
 import logging.handlers
 import tweepy
-import commands
 import yaml
 from BeautifulSoup import BeautifulSoup, UnicodeDammit
 from util import *
+from pysqlite2 import dbapi2 as sqlite3
 
 # twisted imports
 try:
-    from twisted.words.protocols import irc
-    from twisted.internet import reactor, protocol, threads, defer
+    from twisted.internet import reactor, protocol
 except ImportError:
     print "Twisted library not found, please install Twisted from http://twistedmatrix.com/products/download"
     sys.exit(1)
@@ -152,7 +151,9 @@ class URLCacheItem(object):
 
 
 class BotURLOpener(urllib.FancyURLopener):
-    """URL opener that fakes itself as Firefox and ignores all basic auth prompts"""
+    """
+    URL opener that fakes itself as Firefox and ignores all basic auth prompts
+    """
 
     def __init__(self, *args):
         # Firefox 1.0PR on w2k
@@ -193,12 +194,16 @@ class ThrottledClientFactory(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         #print connector
+        log.info("SE JODIO TODO")
         log.info("connection lost (%s): reconnecting in %d seconds" % (reason, self.lostDelay))
         reactor.callLater(self.lostDelay, connector.connect)
 
     def clientConnectionFailed(self, connector, reason):
         #print connector
-        log.info("connection failed (%s): reconnecting in %d seconds" % (reason, self.failedDelay))
+        log.info("connection failed (%s): reconnecting in %d seconds" % (
+            reason,
+            self.failedDelay
+            ))
         reactor.callLater(self.failedDelay, connector.connect)
 
 
@@ -212,6 +217,19 @@ class pungaBotFactory(ThrottledClientFactory):
     moduledir = os.path.join(sys.path[0], "modules/")
     startTime = None
     config = None
+
+    def regexp(self, expr, item):
+        r = re.compile(expr, re.MULTILINE | re.IGNORECASE)
+        return r.match(item) is not None
+
+    def getConn(self, db):
+        conn = sqlite3.connect(
+            db,
+            isolation_level=None,
+            check_same_thread=False
+            )
+        conn.create_function("regexp", 2, self.regexp)
+        return conn.cursor()
 
     def __init__(self, config):
         """Initialize the factory"""
@@ -227,7 +245,7 @@ class pungaBotFactory(ThrottledClientFactory):
         if not os.path.exists("data"):
             os.mkdir("data")
 
-    # connect to twitter
+        # connect to twitter
         if self.config['twitter']:
             key = config['twitter'][0]
             secret = config['twitter'][1]
@@ -239,6 +257,8 @@ class pungaBotFactory(ThrottledClientFactory):
 
             except:
                 log.info('could not connect to TWITTER')
+
+        self.dbCursor = self.getConn(str.join('.', (self.config['nick'], 'db')))
 
     def startFactory(self):
         self.allBots = {}
@@ -346,6 +366,7 @@ class pungaBotFactory(ThrottledClientFactory):
         g['getNick'] = self.getNick
         g['getHostmask'] = self.getHostmask
         g['twapi'] = self.twapi
+        g['dbCursor'] = self.dbCursor
         return g
 
     def getUrl(self, url, nocache=False):
