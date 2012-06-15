@@ -194,7 +194,6 @@ class ThrottledClientFactory(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         #print connector
-        log.info("SE JODIO TODO")
         log.info("connection lost (%s): reconnecting in %d seconds" % (reason, self.lostDelay))
         reactor.callLater(self.lostDelay, connector.connect)
 
