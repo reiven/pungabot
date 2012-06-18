@@ -65,7 +65,7 @@ class URLCacheItem(object):
             try:
                 self.fp = urllib.urlopen(self.url)
             except IOError, e:
-                log.warn("IOError when opening url %s" % url)
+                log.warn("IOError when opening url %s, error: %r" % (url, e))
         return self.fp
 
     def _checkstatus(self):
@@ -95,14 +95,21 @@ class URLCacheItem(object):
 
             size = self.getSize()
             if size > self.max_size:
-                log.warn("CONTENT TOO LARGE, WILL NOT FETCH %s %s" % (size, self.url))
+                log.warn("CONTENT TOO LARGE, WILL NOT FETCH %s %s" % (
+                    size,
+                    self.url
+                    ))
                 self.content = None
             else:
                 if self.checkType():
                     self.content = UnicodeDammit(f.read()).unicode
                 else:
                     type = self.getHeaders().getsubtype()
-                    log.warn("WRONG CONTENT TYPE, WILL NOT FETCH %s, %s, %s" % (size, type, self.url))
+                    log.warn("WRONG CONTENT TYPE, WILL NOT FETCH %s, %s, %s" % (
+                        size,
+                        type,
+                        self.url
+                        ))
 
         self._checkstatus()
 
@@ -194,7 +201,10 @@ class ThrottledClientFactory(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         #print connector
-        log.info("connection lost (%s): reconnecting in %d seconds" % (reason, self.lostDelay))
+        log.info("connection lost (%s): reconnecting in %d seconds" % (
+            reason,
+            self.lostDelay
+            ))
         reactor.callLater(self.lostDelay, connector.connect)
 
     def clientConnectionFailed(self, connector, reason):
@@ -319,7 +329,11 @@ class pungaBotFactory(ThrottledClientFactory):
                     # did we quit intentionally?
                     if not self.allBots[n.alias].hasQuit:
                         # nope, reconnect
-                        ThrottledClientFactory.clientConnectionLost(self, connector, reason)
+                        ThrottledClientFactory.clientConnectionLost(
+                            self,
+                            connector,
+                            reason
+                            )
                     del self.allBots[n.alias]
                     return
                 else:
@@ -328,7 +342,7 @@ class pungaBotFactory(ThrottledClientFactory):
     def _finalize_modules(self):
         """Call all module finalizers"""
         for module in self._findmodules():
-            # if rehashing (module already in namespace), finalize the old instance first
+            # if rehashing , finalize the old instance first
             if self.ns.has_key(module):
                 if self.ns[module][0].has_key('finalize'):
                     log.info("finalize - %s" % module)
@@ -433,11 +447,17 @@ def init_logging():
     # get root logger
     logger = logging.getLogger()
     if False:
-        handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000*1024, backupCount=20)
+        handler = logging.handlers.RotatingFileHandler(
+            filename,
+            maxBytes=5000 * 1024,
+            backupCount=20
+            )
     else:
         handler = logging.StreamHandler()
     # time format is same format of strftime
-    formatter = logging.Formatter('%(asctime)-15s %(levelname)-8s %(name)-11s %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)-15s %(levelname)-8s %(name)-11s %(message)s'
+        )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
@@ -474,7 +494,8 @@ if __name__ == '__main__':
         # prevent internal confusion with channels
         chanlist = []
         for channel in settings['channels']:
-            if channel[0] not in '&#!+': channel = '#' + channel
+            if channel[0] not in '&#!+':
+                channel = str.join('', ('#', channel))
             chanlist.append(channel)
 
         port = 6667
@@ -482,7 +503,12 @@ if __name__ == '__main__':
             port = int(settings.get('port'))
         except:
             pass
-        factory.createNetwork((settings['server'], port), network, nick, chanlist)
+        factory.createNetwork(
+            (settings['server'], port),
+            network,
+            nick,
+            chanlist
+            )
         reactor.connectTCP(settings['server'], port, factory)
 
     reactor.run()

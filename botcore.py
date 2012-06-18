@@ -8,14 +8,11 @@
 
 # twisted imports
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol, defer, threads
+from twisted.internet import reactor, threads
 from twisted.python import rebuild
 
 from types import FunctionType
 
-import os, sys
-import string
-import urllib
 import logging
 import fnmatch
 from util import pyfiurl
@@ -79,6 +76,7 @@ class CoreCommands(object):
             newchannel, network = args.split('@', 1)
 
         except ValueError, e:
+            log.info("%s" % e)
             newchannel, network = args, self.network.alias
 
         try:
@@ -119,6 +117,7 @@ class CoreCommands(object):
         try:
             newchannel, network = args.split('@', 1)
         except ValueError, e:
+            log.info("%s" % e)
             newchannel, network = args, self.network.alias
 
         # get the bot instance for this chat network
@@ -151,7 +150,7 @@ class CoreCommands(object):
         if not args:
             self.say(channel, "Please specify a network")
             return
-        bot = self.factory.allBots[args]
+#        bot = self.factory.allBots[args]
         self.say(channel, "I am on %s" % self.network.channels)
 
     def command_help(self, user, channel, cmnd):
@@ -205,7 +204,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
     """pungaBot"""
 
     nickname = "pichu"
-    realname = "cookiebot"
+    realname = "pungabot"
 
     # send 1 msg per 1/2 sec
     lineRate = 0.5
@@ -261,7 +260,10 @@ class pungaBot(irc.IRCClient, CoreCommands):
             else:
                 self.join(chan)
 
-        log.info("joined %d channel(s): %s" % (len(self.network.channels),", ".join(self.network.channels)))
+        log.info("joined %d channel(s): %s" % (
+            len(self.network.channels),
+            ", ".join(self.network.channels)
+            ))
 
     def pong(self, user, secs):
         self.pingAve = ((self.pingAve * 5) + secs) / 6.0
@@ -392,7 +394,9 @@ class pungaBot(irc.IRCClient, CoreCommands):
             commands = [(c, ref) for c, ref in mylocals.items() if c == "command_%s" % cmnd]
 
             for cname, command in commands:
-#                log.info("module %s called by %s on %s" % ( cname, user, channel ))
+                log.info("module %s called by %s on %s" % (
+                    cname, user, channel
+                    ))
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
                 d.addCallback(self.printResult, "command %s completed" % cname)
@@ -414,7 +418,9 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "privcommand_%s" % cmnd, None)
         if method is not None:
-            log.info("internal privcommand %s called by %s on %s" % (cmnd, user, channel))
+            log.info("internal privcommand %s called by %s on %s" % (
+                cmnd, user, channel
+                ))
             method(user, channel, args)
             return
 
@@ -424,10 +430,15 @@ class pungaBot(irc.IRCClient, CoreCommands):
             commands = [(c, ref) for c, ref in mylocals.items() if c == "privcommand_%s" % cmnd]
 
             for cname, command in commands:
-                log.info("module %s called by %s on %s" % ( cname, user, channel))
+                log.info("module %s called by %s on %s" % (
+                    cname, user, channel)
+                    )
                 # Defer commands to threads
                 d = threads.deferToThread(command, self, user, channel, args)
-                d.addCallback(self.printResult, "privcommand %s completed" % cname)
+                d.addCallback(
+                    self.printResult,
+                    "privcommand %s completed" % cname
+                    )
                 d.addErrback(self.printError, "privcommand %s error" % cname)
 
     ### LOW-LEVEL IRC HANDLERS ###
@@ -536,15 +547,17 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     def created(self, when):
         log.info(self.network.alias + " CREATED: " + when)
-        pass
 
     def yourHost(self, info):
         log.info(self.network.alias + " YOURHOST: " + info)
 
     def myInfo(self, servername, version, umodes, cmodes):
-        log.info(self.network.alias + " MYINFO: %s %s %s %s" % (servername, version, umodes, cmodes))
-        pass
+        log.info(self.network.alias + " MYINFO: %s %s %s %s" % (
+            servername,
+            version,
+            umodes,
+            cmodes
+            ))
 
     def luserMe(self, info):
         log.info(self.network.alias + " LUSERME: " + info)
-        pass
