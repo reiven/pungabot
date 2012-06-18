@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import re
 import string
 import Stemmer
 
 
 def sanitize(buf):
     return filter(lambda x: x in string.printable, buf)
-
-
-def regexp(expr, item):
-    r = re.compile(expr, re.MULTILINE | re.IGNORECASE)
-    return r.match(item) is not None
 
 
 def getQuote(cursor, channel, quoteId):
@@ -52,6 +46,7 @@ def command_quotes(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
+        # set stemmer lang to spanish
         stemmer = Stemmer.Stemmer('spanish')
         dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args), 'utf-8')))
         comp = dbCursor.fetchone()
