@@ -142,7 +142,7 @@ class CoreCommands(object):
         if not lvl or lvl < 4:
             return
 
-        self.quit("Working as programmed")
+        self.quit("cya")
         self.hasQuit = 1
 
     def privcommand_channels(self, user, channel, args):
@@ -161,7 +161,8 @@ class CoreCommands(object):
         commands = []
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
-            commands += [(c.replace("command_", ""), ref) for c, ref in mylocals.items() if c.startswith("command_%s" % cmnd)]
+            commands += [(c.replace("command_", ""), ref) for c, ref \
+            in mylocals.items() if c.startswith("command_%s" % cmnd)]
 
         # help for a specific command
         if len(cmnd) > 0:
@@ -184,7 +185,8 @@ class CoreCommands(object):
         commands = []
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
-            commands += [(c.replace("privcommand_", ""), ref) for c, ref in mylocals.items() if c.startswith("privcommand_%s" % cmnd)]
+            commands += [(c.replace("privcommand_", ""), ref) for c, ref \
+            in mylocals.items() if c.startswith("privcommand_%s" % cmnd)]
 
         # help for a specific command
         if len(cmnd) > 0:
@@ -358,11 +360,14 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            handlers = [(h, ref) for h, ref in mylocals.items() if h == handler and type(ref) == FunctionType]
+            handlers = [(h, ref) for h, ref in mylocals.items() \
+            if h == handler and type(ref) == FunctionType]
 
             for hname, func in handlers:
-                # defer each handler to a separate thread, assign callbacks to see when they end
-                # TODO: Profiling: add time.time() to callback params, calculate difference
+                # defer each handler to a separate thread, assign callbacks
+                # to see when they end
+                # TODO: Profiling: add time.time() to callback params,
+                # to calculate difference
                 d = threads.deferToThread(func, self, *args, **kwargs)
                 d.addCallback(self.printResult, "handler %s completed" % hname)
                 d.addErrback(self.printError, "handler %s error" % hname)
@@ -383,7 +388,11 @@ class pungaBot(irc.IRCClient, CoreCommands):
         # core commands
         method = getattr(self, "command_%s" % cmnd, None)
         if method is not None:
-            log.info("internal command %s called by %s on %s" % (cmnd, user, channel))
+            log.info("internal command %s called by %s on %s" % (
+                cmnd,
+                user,
+                channel
+                ))
             method(user, channel, args)
             return
 
@@ -391,7 +400,8 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            commands = [(c, ref) for c, ref in mylocals.items() if c == "command_%s" % cmnd]
+            commands = [(c, ref) for c, ref in mylocals.items() \
+            if c == "command_%s" % cmnd]
 
             for cname, command in commands:
                 log.info("module %s called by %s on %s" % (
@@ -427,7 +437,8 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            commands = [(c, ref) for c, ref in mylocals.items() if c == "privcommand_%s" % cmnd]
+            commands = [(c, ref) for c, ref in mylocals.items() \
+            if c == "privcommand_%s" % cmnd]
 
             for cname, command in commands:
                 log.info("module %s called by %s on %s" % (
