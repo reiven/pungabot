@@ -29,7 +29,7 @@ from pysqlite2 import dbapi2 as sqlite3
 try:
     from twisted.internet import reactor, protocol
 except ImportError:
-    print "Twisted library not found, please install Twisted from http://twistedmatrix.com/products/download"
+    print "Twisted Matrix library not found, please install it"
     sys.exit(1)
 
 import botcore
@@ -65,7 +65,10 @@ class URLCacheItem(object):
             try:
                 self.fp = urllib.urlopen(self.url)
             except IOError, e:
-                log.warn("IOError when opening url %s, error: %r" % (url, e))
+                log.warn("IOError when opening url %s, error: %r" % (
+                    url,
+                    e.strerror.strerror
+                    ))
         return self.fp
 
     def _checkstatus(self):
@@ -80,9 +83,8 @@ class URLCacheItem(object):
         """Get the content length of URL in kB
 
         @return None if the server doesn't return a content-length header"""
-        if self.getHeaders().has_key('content-length'):
-            length = int(self.getHeaders()['content-length']) / 1024
-            return length
+        if 'content-length' in self.getHeaders():
+            return int(self.getHeaders()['content-length']) / 1024
         else:
             return None
 
@@ -129,7 +131,8 @@ class URLCacheItem(object):
         return self.headers
 
     def checkType(self):
-        if self.getHeaders().getsubtype() in ['html', 'xml', 'xhtml+xml', 'atom+xml']:
+        if self.getHeaders().getsubtype() in  \
+            ['html', 'xml', 'xhtml+xml', 'atom+xml']:
             return True
         else:
             return False
@@ -142,8 +145,9 @@ class URLCacheItem(object):
 
         if not self.bs:
             # only attempt a bs parsing if the content is html, xml or xhtml
-            if self.getHeaders().has_key('content-type') and \
-            self.getHeaders().getsubtype() in ['html', 'xml', 'xhtml+xml', 'atom+xml']:
+            if 'content-type' in self.getHeaders() and \
+            self.getHeaders().getsubtype() in  \
+            ['html', 'xml', 'xhtml+xml', 'atom+xml']:
                 try:
                     bs = BeautifulSoup(markup=self.getContent())
                 except HTMLParser.HTMLParseError:
@@ -325,7 +329,7 @@ class pungaBotFactory(ThrottledClientFactory):
         for n in self.data['networks'].values():
             dest = connector.getDestination()
             if (dest.host, dest.port) == n.address:
-                if self.allBots.has_key(n.alias):
+                if n.alias in self.allBots:
                     # did we quit intentionally?
                     if not self.allBots[n.alias].hasQuit:
                         # nope, reconnect
@@ -337,14 +341,14 @@ class pungaBotFactory(ThrottledClientFactory):
                     del self.allBots[n.alias]
                     return
                 else:
-                    log.info("No active connection to known network %s" % n.address[0])
+                    log.info("No active connection to net %s" % n.address[0])
 
     def _finalize_modules(self):
         """Call all module finalizers"""
         for module in self._findmodules():
             # if rehashing , finalize the old instance first
-            if self.ns.has_key(module):
-                if self.ns[module][0].has_key('finalize'):
+            if module in self.ns:
+                if 'finalize' in self.ns[module][0]:
                     log.info("finalize - %s" % module)
                     self.ns[module][0]['finalize']()
 
@@ -359,7 +363,7 @@ class pungaBotFactory(ThrottledClientFactory):
             # Load new version of the module
             execfile(os.path.join(self.moduledir, module), env, env)
             # initialize module
-            if env.has_key('init'):
+            if 'init' in env:
                 log.info("initialize module - %s" % module)
                 env['init'](self.config)
 
@@ -368,7 +372,8 @@ class pungaBotFactory(ThrottledClientFactory):
 
     def _findmodules(self):
         """Find all modules"""
-        modules = [m for m in os.listdir(self.moduledir) if m.startswith("module_") and m.endswith(".py")]
+        modules = [m for m in os.listdir(self.moduledir) \
+        if m.startswith("module_") and m.endswith(".py")]
         return modules
 
     def _getGlobals(self):
@@ -383,9 +388,12 @@ class pungaBotFactory(ThrottledClientFactory):
         return g
 
     def getUrl(self, url, nocache=False):
-        """Gets data, bs and headers for the given url, using the internal cache if necessary"""
+        """
+        Gets data, bs and headers for the given url,
+        using the internal cache if necessary
+        """
 
-        if self._urlcache.has_key(url) and not nocache:
+        if url in self._urlcache and not nocache:
             log.info("cache hit : %s" % url)
         else:
             if nocache:
@@ -474,9 +482,11 @@ if __name__ == '__main__':
         config = yaml.load(file(config))
     else:
         if create_example_conf():
-            print "No config file found, I created an example config (bot.config.example) for you. Please edit it and rename to bot.config."
+            print "No config file found, I created an example config for you."
+            print "Please edit it and rename to bot.config."
         else:
-            print 'No config file found, there is an example config (bot.config.example) for you. Please edit it and rename to bot.config or delete it to generate a new example config.'
+            print "No config file found, there is an example config for you."
+            print "Please edit it and rename to bot.config"
         sys.exit(1)
 
     factory = pungaBotFactory(config)
