@@ -12,6 +12,7 @@ This version includes:
 * public & private messages handling
 * twitter integration
 * a couple of new usefull modules
+* ssl support
 
 Python libraries needed
 ===========
@@ -46,4 +47,4 @@ This package is distributed under the GPL. see also COPYING.
 
 
 ----------------------------------------------------------------
-federico reiven <reiven@gmail.com>: test!
+federico reiven <reiven@gmail.com>

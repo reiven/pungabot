@@ -33,6 +33,11 @@ Globally available:
 
     The complete tweepy api, already logged to twitter.
 
+- dbCursor()
+
+    The boy only connect once to sqlite, so this is the cursor which is 
+    available for use in modules
+
 Commands via bot.<method>:
 
 - checkValidHostmask(user)

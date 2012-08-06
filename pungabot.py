@@ -20,17 +20,17 @@ import HTMLParser
 import logging
 import logging.handlers
 import tweepy
-import commands
 import yaml
 from BeautifulSoup import BeautifulSoup, UnicodeDammit
 from util import *
+from pysqlite2 import dbapi2 as sqlite3
+from StringIO import StringIO
 
 # twisted imports
 try:
-    from twisted.words.protocols import irc
-    from twisted.internet import reactor, protocol, threads, defer
+    from twisted.internet import reactor, protocol, ssl
 except ImportError:
-    print "Twisted library not found, please install Twisted from http://twistedmatrix.com/products/download"
+    print "Twisted Matrix library not found, please install it"
     sys.exit(1)
 
 import botcore
@@ -66,7 +66,10 @@ class URLCacheItem(object):
             try:
                 self.fp = urllib.urlopen(self.url)
             except IOError, e:
-                log.warn("IOError when opening url %s" % url)
+                log.warn("IOError when opening url %s, error: %r" % (
+                    url,
+                    e.strerror.strerror
+                    ))
         return self.fp
 
     def _checkstatus(self):
@@ -81,9 +84,8 @@ class URLCacheItem(object):
         """Get the content length of URL in kB
 
         @return None if the server doesn't return a content-length header"""
-        if self.getHeaders().has_key('content-length'):
-            length = int(self.getHeaders()['content-length']) / 1024
-            return length
+        if 'content-length' in self.getHeaders():
+            return int(self.getHeaders()['content-length']) / 1024
         else:
             return None
 
@@ -96,17 +98,28 @@ class URLCacheItem(object):
 
             size = self.getSize()
             if size > self.max_size:
-                log.warn("CONTENT TOO LARGE, WILL NOT FETCH %s %s" % (size, self.url))
+                log.warn("CONTENT TOO LARGE, WILL NOT FETCH %s %s" % (
+                    size,
+                    self.url
+                    ))
                 self.content = None
             else:
                 if self.checkType():
+                    # handle gzipped content
+                    if f.info().get('Content-Encoding') == 'gzip':
+                        log.debug("Gzipped data, uncompressing")
+                        buf = StringIO(f.read())
+                        f = GzipFile(fileobj=buf)
                     self.content = UnicodeDammit(f.read()).unicode
                 else:
-                    type = self.getHeaders().getsubtype()
-                    log.warn("WRONG CONTENT TYPE, WILL NOT FETCH %s, %s, %s" % (size, type, self.url))
+                    contentType = self.getHeaders().getsubtype()
+                    log.warn("WRONG CONTENT TYPE, WILL NOT FETCH %s, %s, %s" % (
+                        size,
+                        contentType,
+                        self.url
+                        ))
 
         self._checkstatus()
-
         return self.content
 
     def getHeaders(self):
@@ -123,7 +136,8 @@ class URLCacheItem(object):
         return self.headers
 
     def checkType(self):
-        if self.getHeaders().getsubtype() in ['html', 'xml', 'xhtml+xml', 'atom+xml']:
+        if self.getHeaders().getsubtype() in  \
+            ['html', 'xml', 'xhtml+xml', 'atom+xml']:
             return True
         else:
             return False
@@ -136,8 +150,9 @@ class URLCacheItem(object):
 
         if not self.bs:
             # only attempt a bs parsing if the content is html, xml or xhtml
-            if self.getHeaders().has_key('content-type') and \
-            self.getHeaders().getsubtype() in ['html', 'xml', 'xhtml+xml', 'atom+xml']:
+            if 'content-type' in self.getHeaders() and \
+            self.getHeaders().getsubtype() in  \
+            ['html', 'xml', 'xhtml+xml', 'atom+xml']:
                 try:
                     bs = BeautifulSoup(markup=self.getContent())
                 except HTMLParser.HTMLParseError:
@@ -152,7 +167,9 @@ class URLCacheItem(object):
 
 
 class BotURLOpener(urllib.FancyURLopener):
-    """URL opener that fakes itself as Firefox and ignores all basic auth prompts"""
+    """
+    URL opener that fakes itself as Firefox and ignores all basic auth prompts
+    """
 
     def __init__(self, *args):
         # Firefox 1.0PR on w2k
@@ -165,11 +182,15 @@ class BotURLOpener(urllib.FancyURLopener):
 
 
 class Network:
-    def __init__(self, root, alias, address, nickname, channels=None):
+    def __init__(
+        self, root, alias, address, nickname, channels=None, is_ssl=False
+        ):
+
         self.alias = alias                         # network name
         self.address = address                     # server address
         self.nickname = nickname                   # nick to use
         self.channels = channels or {}             # channels to join
+        self.is_ssl = is_ssl
 
         # create network specific save directory
         p = os.path.join(root, alias)
@@ -193,12 +214,18 @@ class ThrottledClientFactory(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         #print connector
-        log.info("connection lost (%s): reconnecting in %d seconds" % (reason, self.lostDelay))
+        log.info("connection lost (%s): reconnecting in %d seconds" % (
+            reason,
+            self.lostDelay
+            ))
         reactor.callLater(self.lostDelay, connector.connect)
 
     def clientConnectionFailed(self, connector, reason):
         #print connector
-        log.info("connection failed (%s): reconnecting in %d seconds" % (reason, self.failedDelay))
+        log.info("connection failed (%s): reconnecting in %d seconds" % (
+            reason,
+            self.failedDelay
+            ))
         reactor.callLater(self.failedDelay, connector.connect)
 
 
@@ -212,6 +239,19 @@ class pungaBotFactory(ThrottledClientFactory):
     moduledir = os.path.join(sys.path[0], "modules/")
     startTime = None
     config = None
+
+    def regexp(self, expr, item):
+        r = re.compile(expr, re.MULTILINE | re.IGNORECASE)
+        return r.match(item) is not None
+
+    def getConn(self, db):
+        conn = sqlite3.connect(
+            db,
+            isolation_level=None,
+            check_same_thread=False
+            )
+        conn.create_function("regexp", 2, self.regexp)
+        return conn.cursor()
 
     def __init__(self, config):
         """Initialize the factory"""
@@ -227,7 +267,7 @@ class pungaBotFactory(ThrottledClientFactory):
         if not os.path.exists("data"):
             os.mkdir("data")
 
-    # connect to twitter
+        # connect to twitter
         if self.config['twitter']:
             key = config['twitter'][0]
             secret = config['twitter'][1]
@@ -239,6 +279,8 @@ class pungaBotFactory(ThrottledClientFactory):
 
             except:
                 log.info('could not connect to TWITTER')
+
+        self.dbCursor = self.getConn(str.join('.', (self.config['nick'], 'db')))
 
     def startFactory(self):
         self.allBots = {}
@@ -260,28 +302,25 @@ class pungaBotFactory(ThrottledClientFactory):
         reactor.stop()
 
     def buildProtocol(self, address):
-        if re.match("[^a-z]+", address.host):
-            log.error("Kludge fix for twisted.words weirdness")
-            fqdn = socket.getfqdn(address.host)
-            address = (fqdn, address.port)
-        else:
-            address = (address.host, address.port)
+        log.info("Building protocol for %s", address.host)
+        fqdn = socket.getfqdn(address.host)
+        # TODO We do need to know which network the address belongs to
+        for network, server in self.data['networks'].items():
+            log.debug("Conneting to : %s - %s", server, fqdn)
+            p = self.protocol(server)
+            self.allBots[server.alias] = p
+            p.factory = self
+            return p
+        # No address found
+        log.error("Unknown network address: " + repr(address))
+        return InstantDisconnectProtocol()
 
-        # do we know how to connect to the given address?
-        for n in self.data['networks'].values():
-            if n.address == address:
-                break
-        else:
-            log.info("unknown network address: " + repr(address))
-            return InstantDisconnectProtocol()
-
-        p = self.protocol(n)
-        self.allBots[n.alias] = p
-        p.factory = self
-        return p
-
-    def createNetwork(self, address, alias, nickname, channels=None):
-        self.setNetwork(Network("data", alias, address, nickname, channels))
+    def createNetwork(
+        self, address, alias, nickname, channels=None, is_ssl=False
+        ):
+        self.setNetwork(
+            Network("data", alias, address, nickname, channels, is_ssl)
+            )
 
     def setNetwork(self, net):
         nets = self.data['networks']
@@ -296,22 +335,26 @@ class pungaBotFactory(ThrottledClientFactory):
         for n in self.data['networks'].values():
             dest = connector.getDestination()
             if (dest.host, dest.port) == n.address:
-                if self.allBots.has_key(n.alias):
+                if n.alias in self.allBots:
                     # did we quit intentionally?
                     if not self.allBots[n.alias].hasQuit:
                         # nope, reconnect
-                        ThrottledClientFactory.clientConnectionLost(self, connector, reason)
+                        ThrottledClientFactory.clientConnectionLost(
+                            self,
+                            connector,
+                            reason
+                            )
                     del self.allBots[n.alias]
                     return
                 else:
-                    log.info("No active connection to known network %s" % n.address[0])
+                    log.info("No active connection to net %s" % n.address[0])
 
     def _finalize_modules(self):
         """Call all module finalizers"""
         for module in self._findmodules():
-            # if rehashing (module already in namespace), finalize the old instance first
-            if self.ns.has_key(module):
-                if self.ns[module][0].has_key('finalize'):
+            # if rehashing , finalize the old instance first
+            if module in self.ns:
+                if 'finalize' in self.ns[module][0]:
                     log.info("finalize - %s" % module)
                     self.ns[module][0]['finalize']()
 
@@ -326,7 +369,7 @@ class pungaBotFactory(ThrottledClientFactory):
             # Load new version of the module
             execfile(os.path.join(self.moduledir, module), env, env)
             # initialize module
-            if env.has_key('init'):
+            if 'init' in env:
                 log.info("initialize module - %s" % module)
                 env['init'](self.config)
 
@@ -335,7 +378,8 @@ class pungaBotFactory(ThrottledClientFactory):
 
     def _findmodules(self):
         """Find all modules"""
-        modules = [m for m in os.listdir(self.moduledir) if m.startswith("module_") and m.endswith(".py")]
+        modules = [m for m in os.listdir(self.moduledir) \
+        if m.startswith("module_") and m.endswith(".py")]
         return modules
 
     def _getGlobals(self):
@@ -346,12 +390,16 @@ class pungaBotFactory(ThrottledClientFactory):
         g['getNick'] = self.getNick
         g['getHostmask'] = self.getHostmask
         g['twapi'] = self.twapi
+        g['dbCursor'] = self.dbCursor
         return g
 
     def getUrl(self, url, nocache=False):
-        """Gets data, bs and headers for the given url, using the internal cache if necessary"""
+        """
+        Gets data, bs and headers for the given url,
+        using the internal cache if necessary
+        """
 
-        if self._urlcache.has_key(url) and not nocache:
+        if url in self._urlcache and not nocache:
             log.info("cache hit : %s" % url)
         else:
             if nocache:
@@ -413,11 +461,17 @@ def init_logging():
     # get root logger
     logger = logging.getLogger()
     if False:
-        handler = logging.handlers.RotatingFileHandler(filename, maxBytes=5000*1024, backupCount=20)
+        handler = logging.handlers.RotatingFileHandler(
+            filename,
+            maxBytes=5000 * 1024,
+            backupCount=20
+            )
     else:
         handler = logging.StreamHandler()
     # time format is same format of strftime
-    formatter = logging.Formatter('%(asctime)-15s %(levelname)-8s %(name)-11s %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)-15s %(levelname)-8s %(name)-11s %(message)s'
+        )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
@@ -425,44 +479,59 @@ def init_logging():
 if __name__ == '__main__':
 
     init_logging()
-
     sys.path.append(os.path.join(sys.path[0], 'lib'))
-
     config = os.path.join(sys.path[0], "bot.config")
 
     if os.path.exists(config):
         config = yaml.load(file(config))
     else:
         if create_example_conf():
-            print "No config file found, I created an example config (bot.config.example) for you. Please edit it and rename to bot.config."
+            print "No config file found, I created an example config for you."
+            print "Please edit it and rename to bot.config."
         else:
-            print 'No config file found, there is an example config (bot.config.example) for you. Please edit it and rename to bot.config or delete it to generate a new example config.'
+            print "No config file found, there is an example config for you."
+            print "Please edit it and rename to bot.config"
         sys.exit(1)
 
     factory = pungaBotFactory(config)
 
     # write pidfile, for eggchk
     pidfile = str.join('.', (config['nick'], 'pid'))
-    file = open(pidfile, 'w')
-    file.write('%s\n' % os.getpid())
-    file.close()
+    file4pid = open(pidfile, 'w')
+    file4pid.write('%s\n' % os.getpid())
+    file4pid.close()
 
     for network, settings in config['networks'].items():
         # use network specific nick if one has been configured
         nick = settings.get('nick', None) or config['nick']
-
-        # prevent internal confusion with channels
-        chanlist = []
-        for channel in settings['channels']:
-            if channel[0] not in '&#!+': channel = '#' + channel
-            chanlist.append(channel)
-
-        port = 6667
         try:
             port = int(settings.get('port'))
         except:
-            pass
-        factory.createNetwork((settings['server'], port), network, nick, chanlist)
-        reactor.connectTCP(settings['server'], port, factory)
+            port = 6667
+        is_ssl = bool(settings.get('is_ssl', False))
+        # prevent internal confusion with channels
+        chanlist = []
+        for channel in settings['channels']:
+            if channel[0] not in '&#!+':
+                channel = str.join('', ('#', channel))
+            chanlist.append(channel)
+
+        factory.createNetwork(
+            (settings['server'], port),
+            network,
+            nick,
+            chanlist
+            )
+        if is_ssl:
+            log.info("connecting via SSL to %s:%d" % (settings['server'], port))
+            reactor.connectSSL(
+                settings['server'],
+                port,
+                factory,
+                ssl.ClientContextFactory()
+            )
+        else:
+            log.info("connecting to %s:%d" % (settings['server'], port))
+            reactor.connectTCP(settings['server'], port, factory)
 
     reactor.run()
