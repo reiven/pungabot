@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pysqlite2 import dbapi2 as sqlite3
 import hashlib
 
 ######################################################################
@@ -11,23 +10,30 @@ def privcommand_auth(bot, user, channel, args):
     """Usage: !auth user password """
 
     if len(args.split()) == 2:
-        name,passwd = args.split()
+        name, passwd = args.split()
         passwd = hashlib.sha1(passwd).hexdigest()
-        dbCursor.execute("SELECT name,passwd,level FROM users where name = '%s'" % name)
+        dbCursor.execute(
+            "SELECT name,passwd,level FROM users where name = '%s'" % name
+            )
         comp = dbCursor.fetchone()
         if comp:
             if str(comp[1]) == passwd:
                 bot.authenticated[getHostmask(user)] = comp[2]
-                dbCursor.execute("UPDATE users SET hostmask = '%s' WHERE name = '%s'" % (getHostmask(user),name))
+                dbCursor.execute(
+                    "UPDATE users SET hostmask = '%s' WHERE name = '%s'" % (getHostmask(user),name)
+                    )
                 bot.reloadUsers()
-                bot.say(channel,"welcome %s (%s)" % (str(comp[0]),getHostmask(user)))
+                bot.say(
+                    channel,
+                    "welcome %s (%s)" % (str(comp[0]),getHostmask(user))
+                    )
                 bot.log("%s was authenticated sucessfully" % str(comp[0]))
 
             else:
-                bot.say(channel,"wrong password")
+                bot.say(channel, "wrong password")
 
         else:
-            bot.say(channel,"sorry, u're not on the userbase")
+            bot.say(channel, "sorry, u're not on the userbase")
 
     else:
         bot.say(channel, "Usage error.  See 'help auth'")
@@ -49,13 +55,16 @@ def privcommand_adduser(bot, user, channel, args):
                 hashlib.sha1(passwd).hexdigest())
                 )
             bot.reloadUsers()
-            bot.say(channel, "%s added with passwd (%s) " % (user.lower(),password))
+            bot.say(
+                channel,
+                "%s added with passwd (%s) " % (user.lower(), passwd)
+                )
 
         else:
             bot.say(channel, "Usage error.  See 'help adduser'")
 
 ######################################################################
-# addbot : the main difference between users and bots is lack of password (by now)
+# addbot : the main difference between users and bots is lack of password
 #          for the bots, and the hostmask need to be precise to auto-op them
 
 
@@ -71,7 +80,10 @@ def privcommand_addbot(bot, user, channel, args):
                 (unicode(botname.lower(), 'utf-8'), hostmask)
                 )
             bot.reloadUsers()
-            bot.say(channel, "%s added with hostmask (%s) " % (botname.lower(),hostmask))
+            bot.say(
+                channel,
+                "%s added with hostmask (%s) " % (botname.lower(), hostmask)
+            )
 
         else:
             bot.say(channel, "Usage error.  See 'help addbot'")
@@ -85,17 +97,26 @@ def privcommand_delbot(bot, user, channel, args):
         if len(args.split()) == 2:
             passwd, botname = args.split()
             passwd = hashlib.sha1(passwd).hexdigest()
-            dbCursor.execute("SELECT name FROM users where passwd = '%s'" % passwd)
+            dbCursor.execute(
+                "SELECT name FROM users where passwd = '%s'" % passwd
+            )
             comp = dbCursor.fetchone()
             if comp:
-                dbCursor.execute("SELECT name,level,hostmask FROM users WHERE name = '%s'" % botname)
+                dbCursor.execute(
+                    "SELECT name,level,hostmask FROM users WHERE name = '%s'" % botname
+                    )
                 dele = dbCursor.fetchone()
                 if dele and str(dele[1]) == "4":
-                    dbCursor.execute("DELETE FROM users WHERE name = '%s'" % botname)
+                    dbCursor.execute(
+                        "DELETE FROM users WHERE name = '%s'" % botname
+                        )
                     del bot.authenticated[str(dele[2])]
                     bot.say(channel, "%s deleted ok" % (botname.lower()))
                 else:
-                    bot.say(channel, "%s is not a valid bot" % (botname.lower()))
+                    bot.say(
+                        channel,
+                        "%s is not a valid bot" % (botname.lower())
+                        )
 
         else:
             bot.say(channel, "Usage error.  See 'help delbot'")
@@ -109,25 +130,41 @@ def privcommand_set(bot, user, channel, args):
     """Usage: !set password [hostmask/email] datatochange"""
 
     if bot.checkValidHostmask(user):
-        if len(args.split()) == 3 and (args.split()[1] == "hostmask" or args.split()[1] == "email"):
-            passwd,action,newdata = args.split()
+        if len(args.split()) == 3 and (
+            args.split()[1] == "hostmask" or args.split()[1] == "email"
+            ):
+            passwd, action, newdata = args.split()
             passwd = hashlib.sha1(passwd).hexdigest()
-            dbCursor.execute("SELECT name,level FROM users where passwd = '%s'" % passwd)
+            dbCursor.execute(
+                "SELECT name,level FROM users where passwd = '%s'" % passwd
+                )
             comp = dbCursor.fetchone()
             if comp and action == "hostmask":
                 del bot.authenticated[getHostmask(user)]
                 bot.authenticated[newdata] = str(comp[1])
                 dbCursor.execute(
-                    "UPDATE users SET hostmask = '%s' WHERE name = '%s'" % (newdata, str(comp[0]))
+                    "UPDATE users SET hostmask = '%s' WHERE name = '%s'" % (
+                        newdata,
+                        str(comp[0])
+                        )
                     )
                 bot.reloadUsers()
-                bot.say(channel,"ok, %s hostmask updated to %s" % (str(comp[0]), newdata))
+                bot.say(
+                    channel,
+                    "ok, %s hostmask updated to %s" % (str(comp[0]), newdata)
+                    )
 
             elif comp and action == "email":
                 dbCursor.execute(
-                    "UPDATE users SET email = '%s' WHERE name = '%s'" % (newdata, str(comp[0]))
+                    "UPDATE users SET email = '%s' WHERE name = '%s'" % (
+                        newdata,
+                        str(comp[0])
+                        )
                     )
-                bot.say(channel, "ok, %s email updated to %s" % (str(comp[0]), newdata))
+                bot.say(
+                    channel,
+                    "ok, %s email updated to %s" % (str(comp[0]), newdata)
+                    )
 
             else:
                 bot.say(channel, "wrong password")
@@ -151,8 +188,9 @@ def privcommand_check(bot, user, channel, args):
 
         if args.lower() == "level":
             bot.say(
-                channel, "your actual level is %s" % bot.checkValidHostmask(user)
-            )
+                channel,
+                "your actual level is %s" % bot.checkValidHostmask(user)
+                )
 
     else:
         bot.say(channel, "not authenticated or wrong usage")
