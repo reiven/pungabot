@@ -161,7 +161,7 @@ class CoreCommands(object):
         commands = []
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
-            commands += [(c.replace("command_", ""), ref) for c, ref \
+            commands += [(c.replace("command_", ""), ref) for c, ref
             in mylocals.items() if c.startswith("command_%s" % cmnd)]
 
         # help for a specific command
@@ -185,7 +185,7 @@ class CoreCommands(object):
         commands = []
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
-            commands += [(c.replace("privcommand_", ""), ref) for c, ref \
+            commands += [(c.replace("privcommand_", ""), ref) for c, ref
             in mylocals.items() if c.startswith("privcommand_%s" % cmnd)]
 
         # help for a specific command
@@ -315,7 +315,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
             "SELECT hostmask,level,name FROM users ORDER BY level"
             )
         for mask in c:
-            if mask[0] != None:
+            if mask[0] is not None:
                 log.debug("loaded user: %s(%s)" % (mask[2], mask[0]))
                 self.authenticated[mask[0]] = mask[1]
 
@@ -360,7 +360,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            handlers = [(h, ref) for h, ref in mylocals.items() \
+            handlers = [(h, ref) for h, ref in mylocals.items()
             if h == handler and type(ref) == FunctionType]
 
             for hname, func in handlers:
@@ -400,7 +400,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            commands = [(c, ref) for c, ref in mylocals.items() \
+            commands = [(c, ref) for c, ref in mylocals.items()
             if c == "command_%s" % cmnd]
 
             for cname, command in commands:
@@ -437,7 +437,7 @@ class pungaBot(irc.IRCClient, CoreCommands):
         for module, env in self.factory.ns.items():
             myglobals, mylocals = env
             # find all matching command functions
-            commands = [(c, ref) for c, ref in mylocals.items() \
+            commands = [(c, ref) for c, ref in mylocals.items()
             if c == "privcommand_%s" % cmnd]
 
             for cname, command in commands:

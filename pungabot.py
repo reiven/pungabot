@@ -113,7 +113,7 @@ class URLCacheItem(object):
                     self.content = UnicodeDammit(f.read()).unicode
                 else:
                     contentType = self.getHeaders().getsubtype()
-                    log.warn("WRONG CONTENT TYPE, WILL NOT FETCH %s, %s, %s" % (
+                    log.warn("WRONG CONTENT TYPE,WILL NOT FETCH %s, %s, %s" % (
                         size,
                         contentType,
                         self.url
@@ -280,7 +280,9 @@ class pungaBotFactory(ThrottledClientFactory):
             except:
                 log.info('could not connect to TWITTER')
 
-        self.dbCursor = self.getConn(str.join('.', (self.config['nick'], 'db')))
+        self.dbCursor = self.getConn(
+            str.join('.', (self.config['nick'], 'db'))
+            )
 
     def startFactory(self):
         self.allBots = {}
@@ -329,7 +331,7 @@ class pungaBotFactory(ThrottledClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         """Connection lost for some reason"""
-        log.info("connection to %s lost" % str(connector.getDestination().host))
+        log.info("conn to %s lost" % str(connector.getDestination().host))
 
         # find bot that connects to the address that just disconnected
         for n in self.data['networks'].values():
@@ -378,7 +380,7 @@ class pungaBotFactory(ThrottledClientFactory):
 
     def _findmodules(self):
         """Find all modules"""
-        modules = [m for m in os.listdir(self.moduledir) \
+        modules = [m for m in os.listdir(self.moduledir)
         if m.startswith("module_") and m.endswith(".py")]
         return modules
 
@@ -523,7 +525,7 @@ if __name__ == '__main__':
             chanlist
             )
         if is_ssl:
-            log.info("connecting via SSL to %s:%d" % (settings['server'], port))
+            log.info("SSL connection to %s:%d" % (settings['server'], port))
             reactor.connectSSL(
                 settings['server'],
                 port,
