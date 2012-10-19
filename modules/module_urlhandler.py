@@ -97,4 +97,4 @@ def command_link(bot, user, channel, args):
     else:
         dbCursor.execute("SELECT link_url, link_title FROM links ORDER BY RANDOM() LIMIT 1")
         comp = dbCursor.fetchone()
-        bot.say(channel, '%s (%s)' % (str(comp[0]), str(comp[1])))
+        bot.say(channel, '%s (%s)' % (str(comp[0].encode("utf-8")), comp[1].encode("utf-8")))
