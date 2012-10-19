@@ -24,6 +24,7 @@ CREATE TABLE links (
     link_id INTEGER PRIMARY KEY,
     link_url varchar(255) NOT NULL,
     link_title varchar(255) NOT NULL,
+    link_added_at date NOT NULL,
     link_added_by TEXT NOT NULL default ''
 )
 ;
