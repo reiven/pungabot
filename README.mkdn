@@ -1,7 +1,8 @@
 pungaBot
+========
 
 Description
-===========
+-----------
 
 A pure python IRC bot ,using the Twisted matrix IRC library
 Its based on of pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
@@ -15,7 +16,7 @@ This version includes:
 * ssl support
 
 Python libraries needed
-===========
+-----------
 
 twisted matrix (http://twistedmatrix.com)
 pyyaml (http://pyyaml.org/wiki/PyYAML)
@@ -27,21 +28,21 @@ feedparser (http://www.feedparser.org/)
 pytz (http://pypi.python.org/pypi/pytz)
 
 Usage
-===========
+-----------
 
-$ cd pungabot
-$ vi bot.config
-$ python pungabot.py 
+    $ cd pungabot
+    $ vi bot.config
+    $ python pungabot.py 
 
 The last step will notify if you're missing any libraries 
 
 Documentation
-===========
+-----------
 
 See the /doc directory for howtos
 
 License
-=======
+-----------
 
 This package is distributed under the BSD. See also LICENSE.
 
