@@ -1,0 +1,11 @@
+BeautifulSoup==3.2.1
+PyStemmer==1.3.0
+PyYAML==3.10
+Twisted==13.0.0
+argparse==1.2.1
+feedparser==5.1.3
+pyOpenSSL==0.13
+pysqlite==2.6.3
+pytz==2013b
+wsgiref==0.1.2
+zope.interface==4.0.5
