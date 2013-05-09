@@ -15,7 +15,7 @@ CREATE TABLE quotes (
     quote_added_by TEXT NOT NULL default ''
 )
 ;
-CREATE TABLE votes ( 
+CREATE TABLE votes (
     quote_id INTEGER NOT NULL default '0',
     user_id INTEGER NOT NULL default '0'
 )
@@ -26,5 +26,11 @@ CREATE TABLE links (
     link_title varchar(255) NOT NULL,
     link_added_at date NOT NULL,
     link_added_by TEXT NOT NULL default ''
+)
+;
+
+CREATE TABLE aliases (
+    alias varchar(255) PRIMARY KEY,
+    command varchar(255) NOT NULL
 )
 ;
