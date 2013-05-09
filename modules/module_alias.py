@@ -61,7 +61,7 @@ def command_alias(bot, user, channel, args):
             return bot.say(channel, '%s, alias %s borrado'
                     % (getNick(user), aname))
         else:
-            if alias == 'alias':
+            if aname == 'alias':
                 return bot.say(channel, '%s, no gracias'
                     % (getNick(user),))
             set_alias(bot, aname, rest)
