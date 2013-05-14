@@ -175,7 +175,7 @@ class CoreCommands(object):
         else:
             commandlist = ", ".join([c for c, ref in commands])
 
-            self.say(channel, "Available commands: %s" % commandlist)
+            self.say(channel, "Available commands: %s" % commandlist.encode('utf-8'))
 
     def privcommand_help(self, user, channel, cmnd):
         """
