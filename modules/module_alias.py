@@ -47,7 +47,8 @@ def command_alias(bot, user, channel, args):
     """Manage aliases"""
     if not args:
         return bot.say(channel, 'Available aliases: %s' %
-            ", ".join(get_all_aliases(bot)))
+            str(", ".join(get_all_aliases(bot)))
+        )
     else:
         args = args.split(" ")
         aname = args[0]
