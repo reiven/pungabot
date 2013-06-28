@@ -40,3 +40,18 @@ def command_riesgopais(bot, user, channel, args):
         variacion[0].findAll("big")[0].renderContents()
     ))
     return
+
+
+def command_ccl(bot, user, channel, args):
+    """show referencial value for 'contado con liquidacion'"""
+
+    page = urlopen("http://www.ambito.com/economia/mercados/monedas/dolar/")
+    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
+    div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
+    valor = div[3].findAll("div", {"class": "cierreAnteriorUnico"})
+    variacion = div[3].findAll("div", {"class": "variacion"})
+    bot.say(channel, '$%s (%s)' % (
+        valor[0].findAll("big")[0].renderContents(),
+        variacion[0].findAll("big")[0].renderContents()
+    ))
+    return
