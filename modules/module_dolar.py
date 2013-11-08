@@ -55,3 +55,16 @@ def command_ccl(bot, user, channel, args):
         variacion[0].findAll("big")[0].renderContents()
     ))
     return
+
+
+def command_bitcoin(bot, user, channel, args):
+    """show last bitcoin value, based on bitcoinity.org"""
+
+    page = urlopen("http://bitcoinity.org/markets")
+    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
+    div = soup.findAll("div", {"class": "last_prices"})
+    valor = div[0].findAll("span", {"id": "last_price"})
+    bot.say(channel, '$%s USD/BTC' % (
+        valor[0].renderContents(),
+    ))
+    return
