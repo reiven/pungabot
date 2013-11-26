@@ -1,25 +1,30 @@
 # -*- coding: utf-8 *-*
 import urllib2
-import xml.etree.ElementTree as xml
+import json
 
-""" google finance api url """
-GOOGLE_STOCK_URL = 'http://www.google.com/ig/api?stock=%s'
+
+class GoogleFinanceAPI:
+    def __init__(self):
+        self.prefix = "http://finance.google.com/finance/info?client=ig&q="
+
+    def get(self, symbol):
+        url = self.prefix + "%s" % (symbol)
+        u = urllib2.urlopen(url)
+        content = u.read()
+        obj = json.loads(content[3:])
+        return obj[0]
 
 
 def command_stock(bot, user, channel, args):
     """show current information about a financial symbol"""
-
-    tree = xml.parse(urllib2.urlopen(GOOGLE_STOCK_URL % args))
-    doc = tree.getroot()
-    finance = doc.find('finance')
-    if finance.find('exchange').attrib.values()[0] != "UNKNOWN EXCHANGE":
-        bot.say(channel, "(%s:%s) %s : %s %s (%s %%)" % (
-            finance.find('exchange').attrib.values()[0],
-            finance.find('symbol').attrib.values()[0],
-            finance.find('company').attrib.values()[0],
-            finance.find('currency').attrib.values()[0],
-            finance.find('last').attrib.values()[0],
-            finance.find('perc_change').attrib.values()[0])
+    c = GoogleFinanceAPI()
+    quote = c.get(args)
+    if quote['e'] != "UNKNOWN EXCHANGE":
+        bot.say(channel, "(%s:%s) %s (%s %%)" % (
+            quote['e'].encode('utf-8'),
+            quote['t'].encode('utf-8'),
+            quote['l_fix'].encode('utf-8'),
+            quote['cp_fix'].encode('utf-8'))
             )
 
     else:
