@@ -9,10 +9,17 @@ class GoogleFinanceAPI:
 
     def get(self, symbol):
         url = self.prefix + "%s" % (symbol)
-        u = urllib2.urlopen(url)
-        content = u.read()
-        obj = json.loads(content[3:])
-        return obj[0]
+
+        try:
+            u = urllib2.urlopen(url)
+            content = u.read()
+            obj = json.loads(content[3:])
+    	    return obj[0]
+
+        except urllib2.HTTPError, e:
+            if e.code == 400:
+                obj = { 'e': "UNKNOWN EXCHANGE" }
+	        return obj 
 
 
 def command_stock(bot, user, channel, args):
@@ -29,3 +36,4 @@ def command_stock(bot, user, channel, args):
 
     else:
         bot.say(channel, "sorry, that is not a valid company symbol")
+
