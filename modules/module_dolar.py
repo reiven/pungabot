@@ -1,4 +1,6 @@
 from urllib2 import urlopen
+import json
+from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 
 
@@ -58,13 +60,12 @@ def command_ccl(bot, user, channel, args):
 
 
 def command_bitcoin(bot, user, channel, args):
-    """show last bitcoin value, based on bitcoinity.org"""
+    """show last bitcoin value, based on MtGox API"""
 
-    page = urlopen("http://bitcoinity.org/markets")
-    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    div = soup.findAll("div", {"class": "last_prices"})
-    valor = div[0].findAll("span", {"id": "last_price"})
-    bot.say(channel, '$%s USD/BTC' % (
-        valor[0].renderContents(),
+    url = "http://data.mtgox.com/api/2/BTCUSD/money/ticker_fast"
+    resp = json.load(urlopen(url))
+    bot.say(channel, '%s USD/BTC (%s)' % (
+        resp['data']['last_local']['display'].encode('utf-8'),
+        datetime.fromtimestamp(int(resp['data']['now']) // 1000000).strftime('%Y-%m-%d %H:%M:%S')
     ))
     return
