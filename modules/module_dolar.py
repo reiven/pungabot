@@ -50,8 +50,22 @@ def command_ccl(bot, user, channel, args):
     page = urlopen("http://www.ambito.com/economia/mercados/monedas/dolar/")
     soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
     div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
-    valor = div[3].findAll("div", {"class": "cierreAnteriorUnico"})
-    variacion = div[3].findAll("div", {"class": "variacion"})
+    valor = div[4].findAll("div", {"class": "cierreAnteriorUnico"})
+    variacion = div[4].findAll("div", {"class": "variacion"})
+    bot.say(channel, '$%s (%s)' % (
+        valor[0].findAll("big")[0].renderContents(),
+        variacion[0].findAll("big")[0].renderContents()
+    ))
+    return
+
+def command_blue(bot, user, channel, args):
+    """show referencial value for black market dollar in .ar"""
+
+    page = urlopen("http://www.ambito.com/economia/mercados/monedas/dolar/")
+    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
+    div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
+    valor = div[2].findAll("div", {"class": "unico"})
+    variacion = div[2].findAll("div", {"class": "variacion"})
     bot.say(channel, '$%s (%s)' % (
         valor[0].findAll("big")[0].renderContents(),
         variacion[0].findAll("big")[0].renderContents()
