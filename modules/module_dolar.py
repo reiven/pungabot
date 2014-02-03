@@ -64,10 +64,12 @@ def command_blue(bot, user, channel, args):
     page = urlopen("http://www.ambito.com/economia/mercados/monedas/dolar/")
     soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
     div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
-    valor = div[2].findAll("div", {"class": "unico"})
+    compra = div[2].findAll("div", {"class": "ultimo"})
+    venta = div[2].findAll("div", {"class": "cierreAnterior"})
     variacion = div[2].findAll("div", {"class": "variacion"})
-    bot.say(channel, '$%s (%s)' % (
-        valor[0].findAll("big")[0].renderContents(),
+    bot.say(channel, '$%s - %s (%s)' % (
+        compra[0].findAll("big")[0].renderContents(),
+        venta[0].findAll("big")[0].renderContents(),
         variacion[0].findAll("big")[0].renderContents()
     ))
     return
