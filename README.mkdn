@@ -26,6 +26,7 @@ Python libraries needed
 * pysqlite2 (http://code.google.com/p/pysqlite/)
 * feedparser (http://www.feedparser.org/)
 * pytz (http://pypi.python.org/pypi/pytz)
+* requests (http://requests.readthedocs.org)
 
 Also, if you are using virtualenv, you can use provided "requirements.txt" file
 

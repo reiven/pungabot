@@ -9,3 +9,4 @@ pysqlite==2.6.3
 pytz==2013b
 wsgiref==0.1.2
 zope.interface==4.0.5
+requests==2.1.0

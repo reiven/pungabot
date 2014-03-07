@@ -1,87 +1,114 @@
-from urllib2 import urlopen
-import json
-from datetime import datetime
+# -*- coding: utf-8 -*-
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
+import requests
 
 
 def command_dolar(bot, user, channel, args):
     """show the dollar exchange in .ar"""
 
-    page = urlopen("http://www.cotizacion-dolar.com.ar/")
-    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    tabla = soup.findAll("td", {"class": "cotizaciones3"})
-    bot.say(channel, '%s compra - %s venta' % (
-        tabla[0].renderContents().strip(),
-        tabla[1].renderContents().strip()
-        ))
-    return
+    r = requests.get('http://www.cotizacion-dolar.com.ar/')
+    if r.status_code == 200:
+        soup = BeautifulSoup(
+            r.text,
+            convertEntities=BeautifulStoneSoup.HTML_ENTITIES
+            )
+        tabla = soup.findAll("td", {"class": "cotizaciones3"})
+        return bot.say(channel, '%s compra - %s venta (ARS/USD)' % (
+            tabla[0].renderContents().strip(),
+            tabla[1].renderContents().strip()
+            ))
+    else:
+        return bot.say(channel, 'sorry, something wrong with server')
 
 
 def command_euro(bot, user, channel, args):
     """show the euro exchange in .ar"""
 
-    page = urlopen("http://www.cotizacion-dolar.com.ar/")
-    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    tabla = soup.findAll("td", {"class": "cotizaciones3"})
-    bot.say(channel, '%s compra - %s venta' % (
-        tabla[2].renderContents().strip(),
-        tabla[3].renderContents().strip()
-        ))
-    return
+    r = requests.get('http://www.cotizacion-dolar.com.ar/')
+    if r.status_code == 200:
+        soup = BeautifulSoup(
+            r.text,
+            convertEntities=BeautifulStoneSoup.HTML_ENTITIES
+            )
+        tabla = soup.findAll("td", {"class": "cotizaciones3"})
+        bot.say(channel, '%s compra - %s venta (ARS/€)' % (
+            tabla[2].renderContents().strip(),
+            tabla[3].renderContents().strip()
+            ))
+    else:
+        return bot.say(channel, 'sorry, something wrong with server')
 
 
 def command_riesgopais(bot, user, channel, args):
     """show current argentina's country risk index"""
 
-    page = urlopen("http://www.ambito.com/economia/mercados/riesgo-pais/info/?id=2")
-    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    valor = soup.findAll("div", {"id": "ultimo"})
-    variacion = soup.findAll("div", {"id": "variacion"})
-    bot.say(channel, '%s (%s)' % (
-        valor[0].findAll("big")[0].renderContents(),
-        variacion[0].findAll("big")[0].renderContents()
-    ))
-    return
+    r = requests.get('http://www.ambito.com/economia/mercados/riesgo-pais/info/?id=2')
+    if r.status_code == 200:
+        soup = BeautifulSoup(
+            r.text,
+            convertEntities=BeautifulStoneSoup.HTML_ENTITIES
+            )
+        valor = soup.findAll("div", {"id": "ultimo"})
+        variacion = soup.findAll("div", {"id": "variacion"})
+        return bot.say(channel, '%s (%s)' % (
+            valor[0].findAll("big")[0].renderContents(),
+            variacion[0].findAll("big")[0].renderContents()
+        ))
+    else:
+        return bot.say(channel, 'sorry, something wrong with server')
 
 
 def command_ccl(bot, user, channel, args):
     """show referencial value for 'contado con liquidacion'"""
 
-    page = urlopen("http://www.ambito.com/economia/mercados/monedas/dolar/")
-    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
-    valor = div[4].findAll("div", {"class": "cierreAnteriorUnico"})
-    variacion = div[4].findAll("div", {"class": "variacion"})
-    bot.say(channel, '$%s (%s)' % (
-        valor[0].findAll("big")[0].renderContents(),
-        variacion[0].findAll("big")[0].renderContents()
-    ))
-    return
+    r = requests.get('http://www.ambito.com/economia/mercados/monedas/dolar/')
+    if r.status_code == 200:
+        soup = BeautifulSoup(
+            r.text,
+            convertEntities=BeautifulStoneSoup.HTML_ENTITIES
+            )
+        div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
+        valor = div[4].findAll("div", {"class": "cierreAnteriorUnico"})
+        variacion = div[4].findAll("div", {"class": "variacion"})
+        return bot.say(channel, '$%s (%s)' % (
+            valor[0].findAll("big")[0].renderContents(),
+            variacion[0].findAll("big")[0].renderContents()
+        ))
+    else:
+        return bot.say(channel, 'sorry, something wrong with server')
+
 
 def command_blue(bot, user, channel, args):
     """show referencial value for black market dollar in .ar"""
 
-    page = urlopen("http://www.ambito.com/economia/mercados/monedas/dolar/")
-    soup = BeautifulSoup(page, convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-    div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
-    compra = div[2].findAll("div", {"class": "ultimo"})
-    venta = div[2].findAll("div", {"class": "cierreAnterior"})
-    variacion = div[2].findAll("div", {"class": "variacion"})
-    bot.say(channel, '$%s - %s (%s)' % (
-        compra[0].findAll("big")[0].renderContents(),
-        venta[0].findAll("big")[0].renderContents(),
-        variacion[0].findAll("big")[0].renderContents()
-    ))
-    return
+    r = requests.get('http://www.ambito.com/economia/mercados/monedas/dolar/')
+    if r.status_code == 200:
+        soup = BeautifulSoup(
+            r.text,
+            convertEntities=BeautifulStoneSoup.HTML_ENTITIES
+            )
+        div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
+        compra = div[2].findAll("div", {"class": "ultimo"})
+        venta = div[2].findAll("div", {"class": "cierreAnterior"})
+        variacion = div[2].findAll("div", {"class": "variacion"})
+        return bot.say(channel, '%s compra - %s venta (%s) (ARS/USD)' % (
+            compra[0].findAll("big")[0].renderContents(),
+            venta[0].findAll("big")[0].renderContents(),
+            variacion[0].findAll("big")[0].renderContents()
+        ))
+    else:
+        return bot.say(channel, 'sorry, something wrong with server')
 
 
 def command_bitcoin(bot, user, channel, args):
-    """show last bitcoin value, based on MtGox API"""
+    """show bitcoin exchange value, based on blockchain.info API"""
 
-    url = "http://data.mtgox.com/api/2/BTCUSD/money/ticker_fast"
-    resp = json.load(urlopen(url))
-    bot.say(channel, '%s USD/BTC (%s)' % (
-        resp['data']['last_local']['display'].encode('utf-8'),
-        datetime.fromtimestamp(int(resp['data']['now']) // 1000000).strftime('%Y-%m-%d %H:%M:%S')
-    ))
-    return
+    r = requests.get('https://blockchain.info/es/ticker')
+    if r.status_code == 200:
+        data = r.json()
+        return bot.say(channel, '%s compra - %s venta (USD/BTC)' % (
+            data['USD']['buy'],
+            data['USD']['sell'],
+        ))
+    else:
+        return bot.say(channel, 'sorry, something wrong on blockchain API')

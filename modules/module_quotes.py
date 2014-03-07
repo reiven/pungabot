@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import string
 import Stemmer
+dbCursor = "pepe"
 
 
 def sanitize(buf):
@@ -22,17 +22,17 @@ def command_quote(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
-        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(args, 'utf-8')))
+        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_channel = '%s' AND WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (channel, unicode(args, 'utf-8')))
         comp = dbCursor.fetchone()
         if comp:
             for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
                 bot.say(channel, '%s' % line.strip())
 
         else:
-            bot.say(channel,'%s not found, %s' % (args, getNick(user)))
+            bot.say(channel,'%s not found, %s' % (args, getNick(user)))  # lint:ok
 
     else:
-        dbCursor.execute("SELECT quote_id FROM quotes ORDER BY RANDOM() LIMIT 1")
+        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_channel = '%s' ORDER BY RANDOM() LIMIT 1" % (channel))
         comp = dbCursor.fetchone()
         for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
             bot.say(channel, '%s' % line.strip())
@@ -65,14 +65,14 @@ def command_add(bot, user, channel, args):
     """add new quote"""
 
     if args:
-        dbCursor.execute("INSERT INTO quotes VALUES (NULL,?,'0',?)",(unicode(args, 'utf-8'), getNick(user)))
+        dbCursor.execute("INSERT INTO quotes VALUES (NULL, ?, '0', ?, ?)", (unicode(args, 'utf-8'), getNick(user), channel))
 
-        for line in args.split('|'):
-            if len(line) < 139:
-                twapi.update_status(unicode(line.strip(),'utf-8'))
-
-            else:
-                bot.say(channel, '%s,uhm i failed to update twitter in some way' % getNick(user))
+        if channel == "#pvm":
+            for line in args.split('|'):
+                if len(line) < 139:
+                    twapi.update_status(unicode(line.strip(),'utf-8'))
+                else:
+                    bot.say(channel, '%s,uhm i failed to update twitter in some way' % getNick(user))
 
 
         bot.say(channel, 'ok,%s quote added' % getNick(user))
@@ -89,7 +89,7 @@ def command_add(bot, user, channel, args):
 def command_lastquote(bot, user, channel, args):
     """show last added quote"""
 
-    dbCursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
+    dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_channel = '%s' ORDER BY quote_id DESC LIMIT 1" % (channel))
     comp = dbCursor.fetchone()
     for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
         bot.say(channel, '%s' % line.strip())
@@ -102,11 +102,14 @@ def command_show(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
-        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
+        dbCursor.execute("SELECT quote_id, quote_channel FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
         comp = dbCursor.fetchone()
         if comp:
-            for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
-                bot.say(channel, '%s' % line.strip())
+            if str(comp[1]) == channel:
+                for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
+                    bot.say(channel, '%s' % line.strip())
+            else:
+                bot.say(channel, 'sorry %s, that quote is from another channel' % (getNick(user)))
 
         else:
             bot.say(channel, '%s: %s is cualquiera, not found' % (getNick(user),args))
