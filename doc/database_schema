@@ -15,11 +15,13 @@ CREATE TABLE quotes (
     quote_added_by TEXT NOT NULL default ''
 )
 ;
+
 CREATE TABLE votes (
     quote_id INTEGER NOT NULL default '0',
     user_id INTEGER NOT NULL default '0'
 )
 ;
+
 CREATE TABLE links (
     link_id INTEGER PRIMARY KEY,
     link_url varchar(255) NOT NULL,
@@ -32,5 +34,15 @@ CREATE TABLE links (
 CREATE TABLE aliases (
     alias varchar(255) PRIMARY KEY,
     command varchar(255) NOT NULL
+)
+;
+
+CREATE TABLE tell (
+    tell_id INTEGER PRIMARY KEY,
+    tell_from TEXT NOT NULL default '',
+    tell_to TEXT NOT NULL default '',
+    tell_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    tell_text TEXT NOT NULL,
+    tell_channel TEXT
 )
 ;
