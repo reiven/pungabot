@@ -1,15 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-""" Pungabot:
-
-    Python , twisted powered irc bot with userbase and twitter support
-
-    based on pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad"""
-
-# Copyright 2010 federico reiven
-# License: GPL v3
-# For further info, see COPYING file
+"""
+Pungabot:
+Python , twisted powered irc bot with userbase and twitter support
+fork from pyfibot (http://code.google.com/p/pyfibot/) by Riku Lindblad
+@license New-Style BSD
+"""
 
 import re
 import sys
@@ -39,7 +36,6 @@ log = logging.getLogger('core')
 
 # default timeout for socket connections
 import socket
-
 socket.setdefaulttimeout(20)
 
 # twitter api keys
@@ -95,7 +91,6 @@ class URLCacheItem(object):
         @return None if the file is too large (over 2MB)"""
         if not self.content:
             f = self._open(self.url)
-
             size = self.getSize()
             if size > self.max_size:
                 log.warn("CONTENT TOO LARGE, WILL NOT FETCH %s %s" % (
@@ -118,7 +113,6 @@ class URLCacheItem(object):
                         contentType,
                         self.url
                         ))
-
         self._checkstatus()
         return self.content
 
@@ -131,7 +125,6 @@ class URLCacheItem(object):
                 self.headers = f.info()
             else:
                 self.headers = {}
-
         self._checkstatus()
         return self.headers
 
@@ -144,7 +137,6 @@ class URLCacheItem(object):
 
     def getBS(self):
         """Get a beautifulsoup instance for the URL
-
         @return None if the url doesn't contain HTML
         """
 
@@ -161,7 +153,6 @@ class URLCacheItem(object):
                 self.bs = bs
             else:
                 return None
-
         self._checkstatus()
         return self.bs
 
@@ -191,7 +182,6 @@ class Network:
         self.nickname = nickname                   # nick to use
         self.channels = channels or {}             # channels to join
         self.is_ssl = is_ssl
-
         # create network specific save directory
         p = os.path.join(root, alias)
         if not os.path.isdir(p):
@@ -232,8 +222,7 @@ class ThrottledClientFactory(protocol.ClientFactory):
 class pungaBotFactory(ThrottledClientFactory):
     """python  bot factory"""
 
-    version = "20100902.0"
-
+    version = "20140401.0"
     protocol = botcore.pungaBot
     allBots = None
     moduledir = os.path.join(sys.path[0], "modules/")
@@ -260,10 +249,8 @@ class pungaBotFactory(ThrottledClientFactory):
         self.data = {}
         self.data['networks'] = {}
         self.ns = {}
-
         # cache url contents for 5 minutes, check for old entries every minute
         self._urlcache = timeoutdict.TimeoutDict(timeout=300, pollinterval=60)
-
         if not os.path.exists("data"):
             os.mkdir("data")
 
@@ -276,10 +263,8 @@ class pungaBotFactory(ThrottledClientFactory):
                 auth.set_access_token(key, secret)
                 self.twapi = tweepy.API(auth)
                 log.info('connection to TWITTER ok')
-
             except:
                 log.info('could not connect to TWITTER')
-
         self.dbCursor = self.getConn(
             str.join('.', (self.config['nick'], 'db'))
             )
@@ -287,21 +272,15 @@ class pungaBotFactory(ThrottledClientFactory):
     def startFactory(self):
         self.allBots = {}
         self.starttime = time.time()
-
         self._loadmodules()
-
         ThrottledClientFactory.startFactory(self)
-
         log.info("factory started")
 
     def stopFactory(self):
 
         del self.allBots
-        #self.data.close()
-
         ThrottledClientFactory.stopFactory(self)
         log.info("factory stopped")
-        reactor.stop()
 
     def buildProtocol(self, address):
         log.info("Building protocol for %s", address.host)
@@ -363,9 +342,7 @@ class pungaBotFactory(ThrottledClientFactory):
     def _loadmodules(self):
         """Load all modules"""
         self._finalize_modules()
-
         for module in self._findmodules():
-
             env = self._getGlobals()
             log.info("load module - %s" % module)
             # Load new version of the module
@@ -374,9 +351,22 @@ class pungaBotFactory(ThrottledClientFactory):
             if 'init' in env:
                 log.info("initialize module - %s" % module)
                 env['init'](self.config)
-
             # add to namespace so we can find it later
             self.ns[module] = (env, env)
+
+    def _unload_removed_modules(self):
+        """Unload modules removed from modules -directory"""
+        # find all modules which aren't present in modules -directory
+        removed_modules = [m for m in self.ns if not m in self._findmodules()]
+
+        for m in removed_modules:
+            # finalize module before deleting it
+            # TODO: use general _finalize_modules instead of copy-paste
+            if 'finalize' in self.ns[m][0]:
+                log.info("finalize - %s" % m)
+                self.ns[m][0]['finalize']()
+            del self.ns[m]
+            log.info('removed module - %s' % m)
 
     def _findmodules(self):
         """Find all modules"""
@@ -431,33 +421,6 @@ class pungaBotFactory(ThrottledClientFactory):
         return user.split('!', 1)[1]
 
 
-def create_example_conf():
-    """Create an example configuration file"""
-
-    conf = """
-    nick: botnick
-    twitter:
-    - twuser
-    - twpassword
-    networks:
-      ircnet:
-        server: irc.ircnet.com
-        channels:
-          - mychannel
-          - (mysecret, password)
-    commandchar: "!"
-    """
-
-    examplefile = 'bot.config.example'
-    if os.path.exists(examplefile):
-        return False
-    else:
-        f = file(examplefile, 'w')
-        yaml.dump(yaml.load(conf), f, default_flow_style=False)
-        f.close()
-        return True
-
-
 def init_logging():
     filename = os.path.join(sys.path[0], 'pungabot.log')
     # get root logger
@@ -486,14 +449,6 @@ if __name__ == '__main__':
 
     if os.path.exists(config):
         config = yaml.load(file(config))
-    else:
-        if create_example_conf():
-            print "No config file found, I created an example config for you."
-            print "Please edit it and rename to bot.config."
-        else:
-            print "No config file found, there is an example config for you."
-            print "Please edit it and rename to bot.config"
-        sys.exit(1)
 
     factory = pungaBotFactory(config)
 

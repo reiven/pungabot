@@ -2,10 +2,6 @@
 
 """Bot core"""
 
-# Copyright 2010 federico reiven
-# License: GPL v3
-# For further info, see COPYING file
-
 # twisted imports
 from twisted.words.protocols import irc
 from twisted.internet import reactor, threads
@@ -41,9 +37,10 @@ class CoreCommands(object):
                 # rebuild core & update
                 log.info("rebuilding %r" % self)
                 rebuild.updateInstance(self)
-
+                # unload removed modules
+                self.factory._unload_removed_modules()
+                # reload modules
                 self.factory._loadmodules()
-
             except Exception, e:
                 self.say(channel, "Rehash error: %s" % e)
                 log.error("Rehash error: " + e)
@@ -63,28 +60,22 @@ class CoreCommands(object):
         lvl = self.checkValidHostmask(user)
         if not lvl or lvl < 4:
             return
-
         password = None
         # see if we have multiple arguments
         try:
             args, password = args.split(' ', 1)
         except ValueError, e:
             pass
-
         # see if the user specified a network
         try:
             newchannel, network = args.split('@', 1)
-
         except ValueError, e:
             log.info("%s" % e)
             newchannel, network = args, self.network.alias
-
         try:
             bot = self.factory.allBots[network]
-
         except KeyError:
             self.say(channel, "I am not on that network.")
-
         else:
             log.debug("Attempting to join channel %s", newchannel)
             if newchannel in bot.network.channels:
@@ -112,14 +103,12 @@ class CoreCommands(object):
         lvl = self.checkValidHostmask(user)
         if not lvl or lvl < 4:
             return
-
         # part what and where?
         try:
             newchannel, network = args.split('@', 1)
         except ValueError, e:
             log.info("%s" % e)
             newchannel, network = args, self.network.alias
-
         # get the bot instance for this chat network
         try:
             bot = self.factory.allBots[network]
@@ -141,7 +130,6 @@ class CoreCommands(object):
         lvl = self.checkValidHostmask(user)
         if not lvl or lvl < 4:
             return
-
         self.quit("cya")
         self.hasQuit = 1
 
@@ -175,7 +163,10 @@ class CoreCommands(object):
         else:
             commandlist = ", ".join([c for c, ref in commands])
 
-            self.say(channel, "Available commands: %s" % commandlist.encode('utf-8'))
+            self.say(
+                channel,
+                "Available commands: %s" % commandlist.encode('utf-8')
+                )
 
     def privcommand_help(self, user, channel, cmnd):
         """
@@ -198,7 +189,6 @@ class CoreCommands(object):
         # generic help
         else:
             commandlist = ", ".join([c for c, ref in commands])
-
             self.say(channel, "Available commands: %s" % commandlist)
 
 
@@ -207,12 +197,9 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     nickname = "pichu"
     realname = "pungabot"
-
     # send 1 msg per 1/2 sec
     lineRate = 0.5
-
     hasQuit = False
-
     # Rolling ping time average
     pingAve = 0.0
 
@@ -220,10 +207,8 @@ class pungaBot(irc.IRCClient, CoreCommands):
         self.network = network
         self.nickname = self.network.nickname
         self.authenticated = {}
-
         # text wrapper to clip overly long answers
         self.tw = textwrap.TextWrapper(width=400, break_long_words=True)
-
         log.info("bot initialized")
 
     def __repr__(self):
@@ -254,14 +239,12 @@ class pungaBot(irc.IRCClient, CoreCommands):
         """Called when bot has succesfully signed on to server."""
 
         self.reloadUsers()
-
         for chan in self.network.channels:
             # defined as a tuple, channel has a key
             if type(chan) == list:
                 self.join(chan[0], key=chan[1])
             else:
                 self.join(chan)
-
         log.info("joined %d channel(s): %s" % (
             len(self.network.channels),
             ", ".join(self.network.channels)
@@ -278,7 +261,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
         """Override default say to make replying to private messages easier"""
         # wrap long text into suitable fragments
         msg = self.tw.wrap(message)
-
         cont = False
 
         for m in msg:
@@ -349,7 +331,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
         if urls:
             for url in urls:
                 self._runhandler("url", user, channel, url, msg)
-
         # run privmsg handlers
         self._runhandler("privmsg", user, channel, msg)
 
@@ -374,11 +355,10 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     def _command(self, user, channel, cmnd):
         """Handles bot commands.
-
         This function calls the appropriate method for the given command.
-
         The command methods are formatted as "command_<commandname>"
         """
+
         # split arguments from the command part
         try:
             cmnd, args = cmnd.split(" ", 1)
@@ -414,11 +394,10 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     def _privcommand(self, user, channel, cmnd):
         """Handles private bot commands.
-
         This function calls the appropriate method for the given command.
-
         The command methods are formatted as "privcommand_<commandname>"
         """
+
         # split arguments from the command part
         try:
             cmnd, args = cmnd.split(" ", 1)
@@ -464,7 +443,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
             self.joined(channel)
         else:
             self.userJoined(prefix, channel)
-
         if nick.lower() != self.nickname.lower():
             pass
         elif channel not in self.network.channels:
@@ -487,7 +465,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
 
     def irc_QUIT(self, prefix, params):
         """QUIT-handler.
-
         Twisted IRCClient doesn't handle this at all.."""
 
         nick = self.factory.getNick(prefix)
@@ -497,7 +474,6 @@ class pungaBot(irc.IRCClient, CoreCommands):
             self.userLeft(prefix, None, params[0])
 
     ###### HANDLERS ######
-
     ## ME
 
     def joined(self, channel):
