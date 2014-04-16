@@ -3,6 +3,10 @@ from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 import requests
 
 
+def percent_variation(new, old):
+    return ((float(new) / float(old)) * 100) - 100
+
+
 def command_dolar(bot, user, channel, args):
     """show the dollar exchange in .ar"""
 
@@ -42,7 +46,9 @@ def command_euro(bot, user, channel, args):
 def command_riesgopais(bot, user, channel, args):
     """show current argentina's country risk index"""
 
-    r = requests.get('http://www.ambito.com/economia/mercados/riesgo-pais/info/?id=2')
+    r = requests.get(
+        'http://www.ambito.com/economia/mercados/riesgo-pais/info/?id=2'
+        )
     if r.status_code == 200:
         soup = BeautifulSoup(
             r.text,
@@ -110,5 +116,37 @@ def command_bitcoin(bot, user, channel, args):
             data['USD']['buy'],
             data['USD']['sell'],
         ))
+    else:
+        return bot.say(channel, 'sorry, something wrong on blockchain API')
+
+
+def command_litecoin(bot, user, channel, args):
+    """show litecoin exchange value, based on cryptocoincharts.info API"""
+
+    r = requests.get(
+        'http://www.cryptocoincharts.info/v2/api/tradingPair/ltc_usd'
+        )
+    if r.status_code == 200:
+        data = r.json()
+        return bot.say(channel, '%s (%2.3f %%) (USD/LTC)' % (
+            data['price'],
+            percent_variation(data['price'], data['price_before_24h'])
+            ))
+    else:
+        return bot.say(channel, 'sorry, something wrong on blockchain API')
+
+
+def command_dogecoin(bot, user, channel, args):
+    """show dogecoin exchange value, based on cryptocoincharts.info API"""
+
+    r = requests.get(
+        'http://www.cryptocoincharts.info/v2/api/tradingPair/doge_usd'
+        )
+    if r.status_code == 200:
+        data = r.json()
+        return bot.say(channel, '%s (%2.3f %%) (USD/DOGE)' % (
+            data['price'],
+            percent_variation(data['price'], data['price_before_24h'])
+            ))
     else:
         return bot.say(channel, 'sorry, something wrong on blockchain API')
