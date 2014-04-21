@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import string
 import Stemmer
-dbCursor = "pepe"
 
 
 def sanitize(buf):
     return filter(lambda x: x in string.printable, buf)
 
 
-def getQuote(cursor, channel, quoteId):
-    cursor.execute("SELECT quote_id, quote_text FROM quotes WHERE quote_id = '%s' LIMIT 1" % quoteId)
-    comp = cursor.fetchone()
-    return (comp[1].encode("utf-8") + '| (' + str(comp[0]) + ')')
+def showQuote(bot, channel, comp):
+    for line in str(comp[1]).split('|'):
+       bot.say(channel, '%s' % line.encode("utf-8").strip())
+    bot.say(channel, '(%s)' % str(comp[0]))
+    return
 
 
 def command_quote(bot, user, channel, args):
@@ -22,20 +22,17 @@ def command_quote(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
-        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_channel = '%s' AND WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (channel, unicode(args, 'utf-8')))
+        dbCursor.execute("SELECT quote_id, quote_text FROM quotes WHERE quote_channel = '%s' AND  quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (channel, unicode(args, 'utf-8')))
         comp = dbCursor.fetchone()
         if comp:
-            for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
-                bot.say(channel, '%s' % line.strip())
-
+            showQuote(bot, channel, comp)
         else:
-            bot.say(channel,'%s not found, %s' % (args, getNick(user)))  # lint:ok
+            bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
     else:
-        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_channel = '%s' ORDER BY RANDOM() LIMIT 1" % (channel))
+        dbCursor.execute("SELECT quote_id, quote_text FROM quotes WHERE quote_channel = '%s' ORDER BY RANDOM() LIMIT 1" % (channel))
         comp = dbCursor.fetchone()
-        for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
-            bot.say(channel, '%s' % line.strip())
+        showQuote(bot, channel, comp)
 
 
 def command_quotes(bot, user, channel, args):
@@ -48,12 +45,10 @@ def command_quotes(bot, user, channel, args):
 
         # set stemmer lang to spanish
         stemmer = Stemmer.Stemmer('spanish')
-        dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (unicode(stemmer.stemWord(args), 'utf-8')))
+        dbCursor.execute("SELECT quote_id, quote_text FROM quotes WHERE quote_channel = '%s' AND quote_text REGEXP '.*?%s.*?' ORDER BY RANDOM() LIMIT 1" % (channel, unicode(stemmer.stemWord(args), 'utf-8')))
         comp = dbCursor.fetchone()
         if comp:
-            for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
-                bot.say(channel, '%s' % line.strip())
-
+            showQuote(bot, channel, comp)
         else:
             bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
@@ -74,7 +69,6 @@ def command_add(bot, user, channel, args):
                 else:
                     bot.say(channel, '%s,uhm i failed to update twitter in some way' % getNick(user))
 
-
         bot.say(channel, 'ok,%s quote added' % getNick(user))
         # check quote number
         dbCursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
@@ -89,10 +83,10 @@ def command_add(bot, user, channel, args):
 def command_lastquote(bot, user, channel, args):
     """show last added quote"""
 
-    dbCursor.execute("SELECT quote_id FROM quotes WHERE quote_channel = '%s' ORDER BY quote_id DESC LIMIT 1" % (channel))
+    dbCursor.execute("SELECT quote_id, quote_text FROM quotes WHERE quote_channel = '%s' ORDER BY quote_id DESC LIMIT 1" % (channel))
     comp = dbCursor.fetchone()
-    for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
-        bot.say(channel, '%s' % line.strip())
+
+    showQuote(bot, channel, comp)
 
 
 def command_show(bot, user, channel, args):
@@ -102,17 +96,15 @@ def command_show(bot, user, channel, args):
         if "'" in args:
             return bot.say(channel, 'hax0r')
 
-        dbCursor.execute("SELECT quote_id, quote_channel FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
+        dbCursor.execute("SELECT quote_id, quote_text, quote_channel FROM quotes WHERE quote_id = '%s' LIMIT 1" % sanitize(args))
         comp = dbCursor.fetchone()
         if comp:
-            if str(comp[1]) == channel:
-                for line in getQuote(dbCursor, channel, str(comp[0])).split('|'):
-                    bot.say(channel, '%s' % line.strip())
+            if str(comp[2]) == channel:
+                showQuote(bot, channel, comp)
             else:
-                bot.say(channel, 'sorry %s, that quote is from another channel' % (getNick(user)))
-
+                bot.say(channel, '%s: sorry but that quote is from another channel' % (getNick(user)))
         else:
             bot.say(channel, '%s: %s is cualquiera, not found' % (getNick(user),args))
-
     else:
         bot.say(channel, '%s: what id do you wanna see?' % getNick(user))
+
