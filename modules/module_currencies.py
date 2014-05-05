@@ -112,7 +112,7 @@ def command_bitcoin(bot, user, channel, args):
     r = requests.get('https://blockchain.info/es/ticker')
     if r.status_code == 200:
         data = r.json()
-        return bot.say(channel, '%s compra - %s venta (USD/BTC)' % (
+        return bot.say(channel, '%s compra - %s venta (USD/XBT)' % (
             data['USD']['buy'],
             data['USD']['sell'],
         ))
@@ -144,7 +144,7 @@ def command_dogecoin(bot, user, channel, args):
         )
     if r.status_code == 200:
         data = r.json()
-        return bot.say(channel, '%s (%2.3f %%) (USD/DOGE)' % (
+        return bot.say(channel, '%s (%2.3f %%) (USD/XDG)' % (
             data['price'],
             percent_variation(data['price'], data['price_before_24h'])
             ))
