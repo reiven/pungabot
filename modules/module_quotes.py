@@ -9,7 +9,7 @@ def sanitize(buf):
 
 def showQuote(bot, channel, comp):
     for line in str(comp[1]).split('|'):
-       bot.say(channel, '%s' % line.encode("utf-8").strip())
+        bot.say(channel, '%s' % line.encode("utf-8").strip())
     bot.say(channel, '(%s)' % str(comp[0]))
     return
 
@@ -53,7 +53,10 @@ def command_quotes(bot, user, channel, args):
             bot.say(channel,'%s not found, %s' % (args, getNick(user)))
 
     else:
-        return bot.say(channel, '%s: what to do wanna search for?' % getNick(user))
+        return bot.say(
+            channel,
+            '%s: what to do wanna search for?' % getNick(user)
+            )
 
 
 def command_add(bot, user, channel, args):
@@ -74,7 +77,10 @@ def command_add(bot, user, channel, args):
         dbCursor.execute("SELECT quote_id FROM quotes ORDER BY quote_id DESC LIMIT 1")
         comp = dbCursor.fetchone()
         if (int(comp[0]) % 100 == 0):
-            bot.say(channel, 'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % int(comp[0]))
+            bot.say(
+                channel,
+                'wohooooo! %s quotes!!!! a chriunfaaaa!!!' % int(comp[0])
+                )
 
     else:
         bot.say(channel, '%s: what do you want to add?' % getNick(user))
@@ -107,4 +113,3 @@ def command_show(bot, user, channel, args):
             bot.say(channel, '%s: %s is cualquiera, not found' % (getNick(user),args))
     else:
         bot.say(channel, '%s: what id do you wanna see?' % getNick(user))
-
