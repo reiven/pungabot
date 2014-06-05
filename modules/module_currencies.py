@@ -129,7 +129,7 @@ def command_litecoin(bot, user, channel, args):
     if r.status_code == 200:
         data = r.json()
         return bot.say(channel, '%s (%2.3f %%) (USD/LTC)' % (
-            data['price'],
+            data['price'].encode('utf-8'),
             percent_variation(data['price'], data['price_before_24h'])
             ))
     else:
@@ -145,7 +145,7 @@ def command_dogecoin(bot, user, channel, args):
     if r.status_code == 200:
         data = r.json()
         return bot.say(channel, '%s (%2.3f %%) (USD/XDG)' % (
-            data['price'],
+            data['price'].encode('utf-8'),
             percent_variation(data['price'], data['price_before_24h'])
             ))
     else:
