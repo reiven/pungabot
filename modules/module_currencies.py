@@ -117,7 +117,7 @@ def command_bitcoin(bot, user, channel, args):
             data['USD']['sell'],
         ))
     else:
-        return bot.say(channel, 'sorry, something wrong on blockchain API')
+        return bot.say(channel, 'cannot get data from cryptocoincharts API')
 
 
 def command_litecoin(bot, user, channel, args):
@@ -133,7 +133,7 @@ def command_litecoin(bot, user, channel, args):
             percent_variation(data['price'], data['price_before_24h'])
             ))
     else:
-        return bot.say(channel, 'sorry, something wrong on blockchain API')
+        return bot.say(channel, 'cannot get data from cryptocoincharts API')
 
 
 def command_dogecoin(bot, user, channel, args):
@@ -149,4 +149,20 @@ def command_dogecoin(bot, user, channel, args):
             percent_variation(data['price'], data['price_before_24h'])
             ))
     else:
-        return bot.say(channel, 'sorry, something wrong on blockchain API')
+        return bot.say(channel, 'cannot get data from cryptocoincharts API')
+
+
+def command_darkcoin(bot, user, channel, args):
+    """show dogecoin exchange value, based on cryptocoincharts.info API"""
+
+    r = requests.get(
+        'http://www.cryptocoincharts.info/v2/api/tradingPair/drk_usd'
+        )
+    if r.status_code == 200:
+        data = r.json()
+        return bot.say(channel, '%s (%2.3f %%) (USD/DRK)' % (
+            data['price'].encode('utf-8'),
+            percent_variation(data['price'], data['price_before_24h'])
+            ))
+    else:
+        return bot.say(channel, 'cannot get data from cryptocoincharts API')
