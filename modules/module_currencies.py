@@ -124,7 +124,7 @@ def command_litecoin(bot, user, channel, args):
     """show litecoin exchange value, based on cryptocoincharts.info API"""
 
     r = requests.get(
-        'http://www.cryptocoincharts.info/v2/api/tradingPair/ltc_usd'
+        'http://api.cryptocoincharts.info/tradingPair/ltc_usd'
         )
     if r.status_code == 200:
         data = r.json()
@@ -140,7 +140,7 @@ def command_dogecoin(bot, user, channel, args):
     """show dogecoin exchange value, based on cryptocoincharts.info API"""
 
     r = requests.get(
-        'http://www.cryptocoincharts.info/v2/api/tradingPair/doge_usd'
+        'http://api.cryptocoincharts.info/tradingPair/doge_usd'
         )
     if r.status_code == 200:
         data = r.json()
@@ -156,7 +156,7 @@ def command_darkcoin(bot, user, channel, args):
     """show dogecoin exchange value, based on cryptocoincharts.info API"""
 
     r = requests.get(
-        'http://www.cryptocoincharts.info/v2/api/tradingPair/drk_usd'
+        'http://api.cryptocoincharts.info/tradingPair/drk_usd'
         )
     if r.status_code == 200:
         data = r.json()
