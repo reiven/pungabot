@@ -1,39 +1,20 @@
 # -*- coding: utf-8 *-*
-import urllib2
+import requests
 import json
-
-
-class GoogleFinanceAPI:
-    def __init__(self):
-        self.prefix = "http://finance.google.com/finance/info?client=ig&q="
-
-    def get(self, symbol):
-        url = self.prefix + "%s" % (symbol)
-
-        try:
-            u = urllib2.urlopen(url)
-            content = u.read()
-            obj = json.loads(content[3:])
-    	    return obj[0]
-
-        except urllib2.HTTPError, e:
-            if e.code == 400:
-                obj = { 'e': "UNKNOWN EXCHANGE" }
-	        return obj 
 
 
 def command_stock(bot, user, channel, args):
     """show current information about a financial symbol"""
-    c = GoogleFinanceAPI()
-    quote = c.get(args)
-    if quote['e'] != "UNKNOWN EXCHANGE":
+    prefix = "http://finance.google.com/finance/info?client=ig&q="
+    url = ''.join([prefix, args])
+    r = requests.get(url)
+    if r.status_code == 200:
+        data = json.loads(r.text[3:])[0]
         bot.say(channel, "(%s:%s) %s (%s %%)" % (
-            quote['e'].encode('utf-8'),
-            quote['t'].encode('utf-8'),
-            quote['l_fix'].encode('utf-8'),
-            quote['cp_fix'].encode('utf-8'))
+            data['e'].encode('utf-8'),
+            data['t'].encode('utf-8'),
+            data['l_fix'].encode('utf-8'),
+            data['cp_fix'].encode('utf-8'))
             )
-
     else:
         bot.say(channel, "sorry, that is not a valid company symbol")
-
