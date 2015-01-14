@@ -8,14 +8,13 @@ import Stemmer
 
 FEEDS = {
     'Clarín': 'http://www.clarin.com/rss/',
-    'InfoBAE': 'http://www.infobae.com/adjuntos/html/RSS/hoy.xml',
-    'La Nacion': 'http://www.lanacion.com.ar/herramientas/rss/index.asp',
+    'InfoBAE': 'http://www.infobae.com/rss',
+    'La Nacion': 'http://contenidos.lanacion.com.ar/herramientas/rss/origen=2',
     'La Prensa': 'http://www.laprensa.com.ar/ResourcesManager.aspx?Resource=Rss.aspx&Rss=4',
     'Pagina12': 'http://www.pagina12.com.ar/diario/rss/principal.xml',
     'Perfil': 'http://www.perfil.com/rss/ultimomomento.xml',
-    'El Argentino': 'http://www.elargentino.com/Highlights.aspx?Content-Type=text/xml&ChannelDesc=Home',
     'BBC Mundo': 'http://www.bbc.co.uk/mundo/index.xml',
-    'Agencia Noticias Bariloche': 'http://www.anbariloche.com.ar/anbrss.xml',
+    'Agencia Noticias Bariloche': 'http://www.anbariloche.com.ar/rss',
     'El Cronista': 'http://www.cronista.com/rss.html',
 }
 
