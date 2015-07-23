@@ -10,17 +10,19 @@ def percent_variation(new, old):
 def command_dolar(bot, user, channel, args):
     """show the dollar exchange in .ar"""
 
-    r = requests.get('http://www.cotizacion-dolar.com.ar/')
+    r = requests.get('http://www.ambito.com/economia/mercados/monedas/dolar/')
     if r.status_code == 200:
         soup = BeautifulSoup(
             r.text,
             convertEntities=BeautifulStoneSoup.HTML_ENTITIES
             )
-        tabla = soup.findAll("td", {"class": "cotizaciones3"})
-        return bot.say(channel, '%s compra - %s venta (ARS/USD)' % (
-            tabla[0].renderContents().strip(),
-            tabla[1].renderContents().strip()
-            ))
+        div = soup.findAll("div", {"class": "bonosPrincipal dolarPrincipal"})
+        compra = div[0].findAll("div", {"class": "ultimo"})
+        venta = div[0].findAll("div", {"class": "cierreAnterior"})
+        return bot.say(channel, '%s compra - %s venta (ARS/u$s)' % (
+            compra[0].findAll("big")[0].renderContents(),
+            venta[0].findAll("big")[0].renderContents()
+        ))
     else:
         return bot.say(channel, 'sorry, something wrong with server')
 
